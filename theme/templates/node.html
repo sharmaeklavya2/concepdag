@@ -1,0 +1,48 @@
+{% extends "base.html" %}
+
+{% block content %}
+
+{% if metadata and metadata.title %}
+<h1>{{ metadata.title }}</h1>
+{% elif uci %}
+<h1>{{ uci }}</h1>
+{% endif %}
+
+{% if deps %}
+{% for deplist in deps %}
+<h2> Dependencies: </h2>
+    <ul class="deplist">
+    {% for dep in deplist %}
+        <li>
+        {% if dep.exists %}
+        <a href="{{ SITEURL }}/nodes{{ dep.uci }}.html">
+            {% if dep.metadata.title %}
+            <span class="deptitle">{{ dep.metadata.title }}</span>
+            <span class="depuci litooltip">{{ dep.uci }}</span>
+            {% else %}
+            <span class="deptitleuci">{{ dep.metadata.title }}</span>
+            {% endif %}
+        </a>
+        {% else %}
+        <span class="deptitleuci missing">{{ dep.uci }}</span>
+        {% endif %}
+        {% if DEP_REASON_MAP and dep.reason %}
+        <span class="reason litooltip">{{ DEP_REASON_MAP[dep.reason]|default(dep.reason) }}</span>
+        {% endif %}
+        </li>
+    {% endfor %}
+    </ul>
+{% endfor %}
+{% else %}
+<h2> Dependencies: None </h2>
+{% endif %}
+
+{% if document %}
+<div class="horizontal-rule"></div>
+{{ document }}
+{% elif metadata and metadata.description %}
+<div class="horizontal-rule"></div>
+<p>{{ metadata.description }}</p>
+{% endif %}
+
+{% endblock content %}

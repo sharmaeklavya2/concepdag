@@ -1,0 +1,75 @@
+<!DOCTYPE html>
+<html{% if DEFAULT_LANG %} lang="{{ DEFAULT_LANG }}"{% endif %}>
+<head>
+    {% block head %}
+
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+
+    {% block title %}
+    {% if metadata and metadata.title %}
+    <title>{{ metadata.title }} - {{ NAME }}</title>
+    {% elif NAME %}
+    <title>{{ NAME }}</title>
+    {% endif %}
+    {% endblock title %}
+
+    {% block description %}
+    {% if metadata and metadata.description %}
+    <meta name="description" content="{{ metadata.description }}" />
+    {% elif DESCRIPTION %}
+    <meta name="description" content="{{ DESCRIPTION }}" />
+    {% endif %}
+    {% endblock description %}
+
+    {% block keywords %}
+    {% if metadata and metadata.keywords %}
+    <meta name="keywords" content="{{ metadata.keywords|join(',') }}" />
+    {% elif KEYWORDS %}
+    <meta name="keywords" content="{{ KEYWORDS|join(',') }}" />
+    {% endif %}
+    {% endblock keywords %}
+
+    {% block other_metadata %}{% endblock %}
+
+    <link rel="stylesheet" href="{{ SITEURL }}/theme/base.css" />
+    {% block css %}{% if CSS %}{% for css in CSS %}
+    <link rel="stylesheet" href="{{css}}" />
+    {% endfor %}{% endif %}{% endblock css %}
+
+    <script type="text/javascript">
+        window.MathJax = {
+            tex2jax: {
+                inlineMath: [ ['$','$'], ["\\(","\\)"] ],
+                processEscapes: true
+            }
+        };
+    </script>
+    {% block async_js %}{% if ASYNC_JS %}{% for script in ASYNC_JS %}
+    <script type="text/javascript" async="async" src="{{script}}"></script>
+    {% endfor %}{% endif %}{% endblock async_js %}
+
+    {% endblock head %}
+</head>
+
+<body>
+
+<nav>
+    <div id="sitename"><a href="{{SITEURL}}">{{ NAME }}</a></div>
+    <form id="searchform" method="get" action="{{ SITEURL }}/search.html">
+        <input id="searchbox" type="text" name="q" placeholder="Search" />
+        <button id="searchbutton" type="submit" >&#x1F50D;</button>
+    </form>
+</nav>
+
+<div id="main">
+{% block content %}
+{% endblock %}
+</div>
+
+{% block sync_js %}{% if SYNC_JS %}{% for script in SYNC_JS %}
+<script type="text/javascript" src="{{script}}"></script>
+{% endfor %}{% endif %}{% endblock sync_js %}
+
+</body>
+</html>
