@@ -50,7 +50,7 @@ class JsonProcessor:
         html_path = 'nodes{}.html'.format(uci)
         siteurl = self.config.get('SITEURL')
         if siteurl is not None:
-            return urljoin(siteurl, html_path)
+            return urljoin(siteurl + '/', html_path)
         else:
             return html_path
 
