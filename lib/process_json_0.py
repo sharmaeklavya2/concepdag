@@ -11,7 +11,7 @@ from urllib.parse import urljoin
 from markdown import Markdown
 from .common import (
     read_json_obj, write_json_obj, write_string_to_file, get_uci_fpath_list,
-    get_relative_site_url_from_uci
+    get_relative_site_url_from_uci, get_config
     )
 from .tex_md_escape import tex_md_escape
 
@@ -50,14 +50,13 @@ def linkify(text, url):
 
 
 class InputJsonParser:
-    def __init__(self, project_dir, uci, siteurl=None):
+    def __init__(self, input_dir, intermediate_dir, uci, siteurl=None):
         # siteurl should end with a slash if it contains a subdirectory
-        self.project_dir = project_dir
+        self.input_dir = input_dir
+        self.intermediate_dir = intermediate_dir
         self.uci = uci
-        self.includes_dir = pjoin(project_dir, 'input', 'includes')
         self.siteurl = siteurl
         if siteurl is None:
-            self.siteurl2 = get_relative_site_url_from_uci(self.uci)
             self.url = ''
         else:
             self.url = urljoin(siteurl, 'nodes' + uci)
@@ -66,7 +65,7 @@ class InputJsonParser:
         if self.siteurl is not None:
             return urljoin(self.siteurl, url[1:])
         else:
-            return self.siteurl2 + url
+            return get_relative_site_url_from_uci(self.uci) + url
 
     class ParseError(ValueError):
         def __init__(self, *args, uci, jsonpath):
@@ -176,7 +175,7 @@ class InputJsonParser:
                         uci=self.uci, jsonpath=jsonpath)
                 else:
                     format = ext[1:]
-            abspath = pjoin(self.includes_dir, relpath[1:])
+            abspath = pjoin(self.input_dir, 'includes', relpath[1:])
             with open(abspath) as fobj:
                 text = fobj.read()
             lines.append(convert_to_html(text, format))
@@ -238,18 +237,17 @@ class InputJsonParser:
         return (d2, document)
 
 
-def run_on_all(project_dir, indent=4):
-    input_nodes_dir = pjoin(project_dir, 'input', 'nodes')
-    int_nodes_dir = pjoin(project_dir, 'intermediate', 'json1')
-    pages_dir = pjoin(project_dir, 'intermediate', 'pages')
-    uci_input_fpath_list = get_uci_fpath_list(input_nodes_dir)
+def process_all(input_dir, intermediate_dir, indent=4):
+    config = get_config(input_dir)
+    uci_input_fpath_list = get_uci_fpath_list(pjoin(input_dir, 'nodes'))
     for uci, input_fpath in uci_input_fpath_list:
-        output_fpath = pjoin(int_nodes_dir, uci[1:] + '.json')
-        parser = InputJsonParser(project_dir, uci=uci)
+        output_fpath = pjoin(intermediate_dir, 'json1', uci[1:] + '.json')
+        parser = InputJsonParser(input_dir, intermediate_dir, uci=uci,
+            siteurl=config.get('SITEURL'))
         d = read_json_obj(input_fpath)
         d2, document = parser.parse_input(d)
         write_json_obj(d2, output_fpath, indent=indent)
-        output_fpath2 = pjoin(pages_dir, uci[1:] + '.html')
+        output_fpath2 = pjoin(intermediate_dir, 'pages', uci[1:] + '.html')
         if document is not None:
             write_string_to_file(document, output_fpath2)
 

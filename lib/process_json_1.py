@@ -7,7 +7,7 @@ import json
 from collections import OrderedDict
 from urllib.parse import urljoin
 
-from .common import get_uci_fpath_list, read_json_obj, write_json_obj
+from .common import get_uci_fpath_list, read_json_obj, write_json_obj, get_config
 
 
 class JsonProcessor:
@@ -15,18 +15,10 @@ class JsonProcessor:
     class ConfigError(ValueError):
         pass
 
-    def __init__(self, project_dir, uci, config=None):
-        self.uci = uci
-        self.project_dir = project_dir
-        self.in_dir = pjoin(project_dir, 'intermediate', 'json1')
-        self.out_dir = pjoin(project_dir, 'intermediate', 'json2')
-        self.files_dir = pjoin(project_dir, 'input', 'files')
-        self.includes_dir = pjoin(project_dir, 'input', 'includes')
-        if config is None:
-            self.config_path = pjoin(project_dir, 'input', 'config.json')
-            self.config = read_json_obj(self.config_path)
-        else:
-            self.config = config
+    def __init__(self, intermediate_dir, config):
+        self.in_dir = pjoin(intermediate_dir, 'json1')
+        self.out_dir = pjoin(intermediate_dir, 'json2')
+        self.config = config
 
     def get_fpath_for_uci(self, uci2):
         return pjoin(self.in_dir, uci2[1:] + '.json')
@@ -54,8 +46,8 @@ class JsonProcessor:
             d2.append(d3)
         return d2
 
-    def get_url(self):
-        html_path = 'nodes{}.html'.format(self.uci)
+    def get_url(self, uci):
+        html_path = 'nodes{}.html'.format(uci)
         siteurl = self.config.get('SITEURL')
         if siteurl is not None:
             return urljoin(siteurl, html_path)
@@ -70,7 +62,7 @@ class JsonProcessor:
 
         obj = OrderedDict()
         obj['uci'] = uci
-        obj['url'] = self.get_url()
+        obj['url'] = self.get_url(uci)
 
         if search_fields is not None:
             for search_field in search_fields:
@@ -107,42 +99,41 @@ def add_to_index_tree(tree, uci, url, metadata):
             tree[part] = {'uci': uci, 'url': url, 'metadata': metadata}
 
 
-def run_on_all(project_dir):
-    json_dir_1 = pjoin(project_dir, 'intermediate', 'json1')
-    json_dir_2 = pjoin(project_dir, 'intermediate', 'json2')
-    config_path = pjoin(project_dir, 'input', 'config.json')
-    config = read_json_obj(config_path)
+def process_all(input_dir, intermediate_dir, output_dir):
+    config = get_config(input_dir)
     search_objs = []
     index_tree = OrderedDict()
-    uci_fpath_list_1 = get_uci_fpath_list(json_dir_1)
+    uci_fpath_list_1 = get_uci_fpath_list(pjoin(intermediate_dir, 'json1'))
 
+    processor = JsonProcessor(intermediate_dir, config)
     for uci, fpath1 in uci_fpath_list_1:
-        fpath2 = pjoin(json_dir_2, uci[1:] + '.json')
+        fpath2 = pjoin(intermediate_dir, 'json2', uci[1:] + '.json')
         d = read_json_obj(fpath1)
-        processor = JsonProcessor(project_dir, uci, config)
         d2 = processor.process(d)
         search_objs.append(processor.get_search_obj(d, uci))
-        add_to_index_tree(index_tree, uci, processor.get_url(), d['metadata'])
+        add_to_index_tree(index_tree, uci, processor.get_url(uci), d['metadata'])
         write_json_obj(d2, fpath2, indent=4)
 
-    write_json_obj(index_tree, pjoin(project_dir, 'intermediate', 'index.json'), indent=4)
+    write_json_obj(index_tree, pjoin(intermediate_dir, 'index.json'), indent=4)
     search_fields = config.get('SEARCH_FIELDS')
     search_fields = search_fields if search_fields is not None else ['search']
-    search_fpath = pjoin(project_dir, 'output', 'searchinfo', 'raw.json')
+    search_fpath = pjoin(output_dir, 'searchinfo', 'raw.json')
     write_json_obj({'fields': search_fields, 'corpus': search_objs},
         search_fpath, indent=0)
 
 
 def main():
     parser = argparse.ArgumentParser(description=__doc__)
-    parser.add_argument('project_dir')
+    parser.add_argument('intermediate_dir')
+    parser.add_argument('config_path', help='Path to JSON config file')
     parser.add_argument('fpath', help='Path to JSON file')
     args = parser.parse_args()
 
     with open(args.fpath) as fobj:
         d = json.load(fobj, object_pairs_hook=OrderedDict)
 
-    processor = JsonProcessor(args.project_dir, uci=args.fpath)
+    config = read_json_obj(args.config_path)
+    processor = JsonProcessor(args.intermediate_dir, config=config)
     d2 = processor.process(d)
 
     print(json.dumps(d2, indent=2))

@@ -35,8 +35,8 @@ def write_string_to_file(s, fpath):
         fp.write(s)
 
 
-def get_config(project_dir):
-    config_json = pjoin(project_dir, 'input', 'config.json')
+def get_config(dirpath):
+    config_json = pjoin(dirpath, 'config.json')
     config = read_json_obj(config_json)
     if config.get('TITLE') is None and config.get('NAME') is not None:
         config['TITLE'] = config.get('NAME')
