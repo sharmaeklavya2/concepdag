@@ -54,6 +54,14 @@ class JsonProcessor:
             d2.append(d3)
         return d2
 
+    def get_url(self):
+        html_path = 'nodes{}.html'.format(self.uci)
+        siteurl = self.config.get('SITEURL')
+        if siteurl is not None:
+            return urljoin(siteurl, html_path)
+        else:
+            return html_path
+
     def get_search_obj(self, d, uci):
         try:
             search_fields = self.config['SEARCH_FIELDS']
@@ -62,10 +70,7 @@ class JsonProcessor:
 
         obj = OrderedDict()
         obj['uci'] = uci
-        if self.config.get('SITEURL') is not None:
-            obj['url'] = urljoin(self.config['SITEURL'], 'nodes{}.html'.format(uci))
-        else:
-            obj['url'] = './nodes{}.html'.format(uci)
+        obj['url'] = self.get_url()
 
         if search_fields is not None:
             for search_field in search_fields:
@@ -83,12 +88,32 @@ class JsonProcessor:
         return d2
 
 
+def section_id_to_name(s):
+    return s.replace('-', ' ').replace('_', ' ').title()
+
+
+def add_to_index_tree(tree, uci, url, metadata):
+    uci_parts = uci[1:].split('/')
+    for i, part in enumerate(uci_parts):
+        if i < len(uci_parts) - 1:
+            bpart = section_id_to_name(part)
+            if bpart not in tree:
+                tree2 = OrderedDict()
+                tree[bpart] = tree2
+            else:
+                tree2 = tree[bpart]
+            tree = tree2
+        else:
+            tree[part] = {'uci': uci, 'url': url, 'metadata': metadata}
+
+
 def run_on_all(project_dir):
     json_dir_1 = pjoin(project_dir, 'intermediate', 'json1')
     json_dir_2 = pjoin(project_dir, 'intermediate', 'json2')
     config_path = pjoin(project_dir, 'input', 'config.json')
     config = read_json_obj(config_path)
     search_objs = []
+    index_tree = OrderedDict()
     uci_fpath_list_1 = get_uci_fpath_list(json_dir_1)
 
     for uci, fpath1 in uci_fpath_list_1:
@@ -97,8 +122,10 @@ def run_on_all(project_dir):
         processor = JsonProcessor(project_dir, uci, config)
         d2 = processor.process(d)
         search_objs.append(processor.get_search_obj(d, uci))
+        add_to_index_tree(index_tree, uci, processor.get_url(), d['metadata'])
         write_json_obj(d2, fpath2, indent=4)
 
+    write_json_obj(index_tree, pjoin(project_dir, 'intermediate', 'index.json'), indent=4)
     search_fields = config.get('SEARCH_FIELDS')
     search_fields = search_fields if search_fields is not None else ['search']
     search_fpath = pjoin(project_dir, 'output', 'searchinfo', 'raw.json')

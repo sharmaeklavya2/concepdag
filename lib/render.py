@@ -71,6 +71,8 @@ def render_all(project_dir):
 
     # render index and search
     context = get_context(config)
+    index_tree_path = pjoin(project_dir, 'intermediate', 'index.json')
+    context['index_tree'] = read_json_obj(index_tree_path)
     for fname in ('index.html', 'search.html'):
         template = jinja_env.get_template(fname)
         s = template.render(**context)

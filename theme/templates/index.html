@@ -1,6 +1,30 @@
 {% extends "base.html" %}
 
+{% macro print_tree(tree) %}
+<ul>
+    {% for k, v in tree.items() %}
+    <li>
+        {% if 'url' in v and 'metadata' in v %}
+        <a href="{{ v.url }}">
+            {% if v.metadata.title %}
+            <span class="index-title">{{ v.metadata.title }}</span>
+            <span class="index-uci litooltip">{{ v.uci }}</span>
+            {% else %}
+            <span class-"index-titleuci">{{ v.uci }}</span>
+            {% endif %}
+        </a>
+        {% else %}
+        <span class="index-heading">{{ k }}</span>: {{ print_tree(v) }}
+        {% endif %}
+    </li>
+    {% endfor %}
+</ul>
+{% endmacro %}
+
 {% block content %}
 <h1>{{ TITLE }}</h1>
 <p>{{ DESCRIPTION }}</p>
+{% if index_tree %}
+{{ print_tree(index_tree) }}
+{% endif %}
 {% endblock content %}

@@ -96,14 +96,14 @@ li:not(:hover) .litooltip {
 .deplist .missing {
     font-family: monospace;
 }
-.depuci {
+.depuci, .index-uci {
     margin-left: 1em;
     text-decoration: none;
     font-size: 0.8em;
     color: rgba(0, 0, 0, 0.4);
     font-family: monospace;
 }
-.deptitleuci {
+.deptitleuci, .index-titleuci {
     font-family: monospace;
 }
 .deplist .reason {
