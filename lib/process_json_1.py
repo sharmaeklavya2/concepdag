@@ -5,19 +5,28 @@ import argparse
 from os.path import join as pjoin
 import json
 from collections import OrderedDict
+from urllib.parse import urljoin
 
 from .common import get_uci_fpath_list, read_json_obj, write_json_obj
 
 
 class JsonProcessor:
 
-    def __init__(self, project_dir, uci):
+    class ConfigError(ValueError):
+        pass
+
+    def __init__(self, project_dir, uci, config=None):
         self.uci = uci
         self.project_dir = project_dir
         self.in_dir = pjoin(project_dir, 'intermediate', 'json1')
         self.out_dir = pjoin(project_dir, 'intermediate', 'json2')
         self.files_dir = pjoin(project_dir, 'input', 'files')
         self.includes_dir = pjoin(project_dir, 'input', 'includes')
+        if config is None:
+            self.config_path = pjoin(project_dir, 'input', 'config.json')
+            self.config = read_json_obj(self.config_path)
+        else:
+            self.config = config
 
     def get_fpath_for_uci(self, uci2):
         return pjoin(self.in_dir, uci2[1:] + '.json')
@@ -45,6 +54,28 @@ class JsonProcessor:
             d2.append(d3)
         return d2
 
+    def get_search_obj(self, d, uci):
+        try:
+            search_fields = self.config['SEARCH_FIELDS']
+        except KeyError:
+            search_fields = None
+
+        obj = OrderedDict()
+        obj['uci'] = uci
+        if self.config.get('SITEURL') is not None:
+            obj['url'] = urljoin(self.config['SITEURL'], 'nodes{}.html'.format(uci))
+        else:
+            obj['url'] = './nodes{}.html'.format(uci)
+
+        if search_fields is not None:
+            for search_field in search_fields:
+                v = d['metadata'].get(search_field)
+                if v is not None:
+                    obj[search_field] = v
+        else:
+            obj['search'] = list(d['metadata'].values())
+        return obj
+
     def process(self, d):
         d2 = OrderedDict()
         d2['deps'] = self.process_deps(d['deps'])
@@ -55,14 +86,24 @@ class JsonProcessor:
 def run_on_all(project_dir):
     json_dir_1 = pjoin(project_dir, 'intermediate', 'json1')
     json_dir_2 = pjoin(project_dir, 'intermediate', 'json2')
+    config_path = pjoin(project_dir, 'input', 'config.json')
+    config = read_json_obj(config_path)
+    search_objs = []
     uci_fpath_list_1 = get_uci_fpath_list(json_dir_1)
 
     for uci, fpath1 in uci_fpath_list_1:
         fpath2 = pjoin(json_dir_2, uci[1:] + '.json')
         d = read_json_obj(fpath1)
-        processor = JsonProcessor(project_dir, uci)
+        processor = JsonProcessor(project_dir, uci, config)
         d2 = processor.process(d)
+        search_objs.append(processor.get_search_obj(d, uci))
         write_json_obj(d2, fpath2, indent=4)
+
+    search_fields = config.get('SEARCH_FIELDS')
+    search_fields = search_fields if search_fields is not None else ['search']
+    search_fpath = pjoin(project_dir, 'output', 'searchinfo', 'raw.json')
+    write_json_obj({'fields': search_fields, 'corpus': search_objs},
+        search_fpath, indent=0)
 
 
 def main():
