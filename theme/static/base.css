@@ -5,7 +5,7 @@ body {
     margin: 0;
 }
 #main {
-    padding: 0 1em 1em 1em;
+    padding: 0 2rem 2rem 2rem;
 }
 nav {
     background-color: rgba(0, 0, 0, 0.1);
@@ -14,7 +14,7 @@ nav {
 }
 #sitename {
     font-size: 2em;
-    padding: 0.25rem 0.5rem;
+    padding: 0.25rem 2rem;
     margin-right: 2rem;
     display: block;
     align-self: center;
@@ -51,6 +51,9 @@ nav #searchbox, nav #searchbutton {
 @media (max-width: 600px) {
     nav {
         flex-direction: column;
+    }
+    #main {
+        padding: 0 1rem 1rem 1rem;
     }
 }
 
