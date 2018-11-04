@@ -54,23 +54,12 @@ class JsonProcessor:
         else:
             return html_path
 
-    def get_search_obj(self, d, uci):
-        try:
-            search_fields = self.config['SEARCH_FIELDS']
-        except KeyError:
-            search_fields = None
-
-        obj = OrderedDict()
+    def get_search_obj(self, d, uci, search_sep=' $ '):
+        obj = OrderedDict(d['metadata'])
         obj['uci'] = uci
         obj['url'] = self.get_url(uci)
-
-        if search_fields is not None:
-            for search_field in search_fields:
-                v = d['metadata'].get(search_field)
-                if v is not None:
-                    obj[search_field] = v
-        else:
-            obj['search'] = list(d['metadata'].values())
+        if self.config.get('SEARCH_FIELDS') is None:
+            obj['search'] = search_sep.join(d['metadata'].values())
         return obj
 
     def process(self, d):

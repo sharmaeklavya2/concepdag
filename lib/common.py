@@ -4,6 +4,9 @@ import json
 from collections import OrderedDict
 
 
+DEFAULT_SITE_NAME = 'ConcepDAG'
+
+
 def get_uci_fpath_list(nodes_dir):
     uci_fpath_list = []
     for dirpath, dirnames, fnames in os.walk(nodes_dir):
@@ -37,9 +40,14 @@ def write_string_to_file(s, fpath):
 
 def get_config(dirpath):
     config_json = pjoin(dirpath, 'config.json')
-    config = read_json_obj(config_json)
+    try:
+        config = read_json_obj(config_json)
+    except FileNotFoundError:
+        config = OrderedDict()
     if config.get('TITLE') is None and config.get('NAME') is not None:
         config['TITLE'] = config.get('NAME')
+    if config.get('NAME') is None:
+        config['NAME'] = DEFAULT_SITE_NAME
     return config
 
 
