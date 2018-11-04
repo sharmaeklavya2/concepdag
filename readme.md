@@ -30,6 +30,14 @@ All sub-directories are optional; but of course, you won't get any output if the
 You can also specify a theme to use to generate the website.
 If you don't do that, the default theme will be used.
 
+### Example
+
+I used ConcepDAG to create [TheoremDep](https://sharmaeklavya2.github.io/theoremdep/),
+a website to track dependencies between theorems and definitions.
+
+You can view the `input_dir` for TheoremDep at its source repository:
+<https://github.com/sharmaeklavya2/theoremdep-source>
+
 ### `nodes` JSON schema
 
 Coming soon.
