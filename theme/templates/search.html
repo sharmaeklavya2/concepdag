@@ -1,6 +1,46 @@
 {% extends "base.html" %}
 
+{% block css %}{{super()}}
+<style>
+.search-result-title {
+    font-size: 1.2em;
+}
+.search-result-uci {
+    color: darkgreen;
+    font-family: monospace;
+    font-size: 0.8em;
+}
+.search-result-description {
+    font-size: 0.95em;
+    color: rgba(0, 0, 0, 0.8);
+}
+#search-results ul {
+    padding: 0;
+    margin: 0;
+}
+#search-results li {
+    list-style: none;
+    margin: 1.5em 0;
+}
+#search-results a {
+    text-decoration: none;
+}
+#search-results a:hover .search-result-title {
+    text-decoration: underline;
+}
+</style>
+{% endblock css %}
+
+{% block sync_js %}{{super()}}
+{% if SEARCH_SYNC_JS %}{% for script in SEARCH_SYNC_JS %}
+<script type="text/javascript" src="{{script}}"></script>
+{% endfor %}{% endif %}
+<script type="text/javascript">var siteurl = '{{ SITEURL }}';</script>
+<script src="{{ SITEURL }}/theme/search.js"></script>
+{% endblock sync_js %}
+
 {% block content %}
 <h1>Search</h1>
-<p>Search is not supported. Sorry.</p>
+<noscript><p>JavaScript is disabled. Enable JavaScript to search.</p></noscript>
+<div id="search-results"></div>
 {% endblock content %}
