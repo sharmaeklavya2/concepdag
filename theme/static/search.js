@@ -13,30 +13,42 @@ if(first_query !== null && first_query !== '') {
 
 var persistence = {
     'index': null,
+    'search_library': null,
 };
 
-// get siteurl and rawurl
+// get siteurl and raw_url
+
+function get_siteurl() {
+    var path = window.location.pathname;
+    var new_path = path.substr(0, path.lastIndexOf('/'));
+    return [window.location.protocol, '//', window.location.host, new_path].join('');
+}
 
 if(typeof siteurl === 'undefined') {
     var siteurl = null;
 }
-console.log('siteurl:', siteurl);
 if(siteurl === null) {
-    var siteurl = window.location.hostname;
-    console.log('siteurl from window:', siteurl);
+    var siteurl = get_siteurl();
 }
+console.log('siteurl:', siteurl);
 var raw_url = siteurl + '/searchinfo/raw.json'
 
 // generic
 
-function apply_to_json(url, hook) {
+function apply_to_json(url, hook, fail_hook) {
     console.log('apply_to_json');
     var xhttp = new XMLHttpRequest();
     xhttp.onreadystatechange = function() {
-        if(this.readyState == 4 && this.status == 200) {
-            console.log('received request for ' + url);
-            var json = JSON.parse(this.responseText);
-            hook(json);
+        if(this.readyState == 4) {
+            if(this.status >= 200 && this.status <= 299) {
+                console.log('received request for ' + url);
+                var json = JSON.parse(this.responseText);
+                hook(json);
+            }
+            else {
+                console.warn('status code:', this.status);
+                fail_hook(this.status);
+            }
         }
     };
     xhttp.open('GET', url, true);
@@ -45,7 +57,34 @@ function apply_to_json(url, hook) {
 
 // engine-specific
 
-function create_elasticlunr_index(json) {
+var get_index_url = {}
+var create_index = {}
+var search_index = {}
+
+get_index_url['local'] = function() {return raw_url;}
+create_index['local'] = function (json) {return json;}
+
+search_index['local'] = function (index, query) {
+    var docs = index['corpus'];
+    var fields = index['fields'];
+    var docs2 = [];
+    for(var i=0; i<docs.length; ++i) {
+        for(var j=0; j<fields.length; ++j) {
+            var doc = docs[i];
+            var s = doc[fields[j]];
+            if(s !== undefined && s !== null && s.toLowerCase().includes(query.toLowerCase())) {
+                docs2.push(doc);
+            }
+        }
+    }
+    return docs2;
+}
+
+get_index_url['elasticlunr'] = function () {
+    return raw_url;
+}
+
+create_index['elasticlunr'] = function (json) {
     var index = elasticlunr(function() {
         var fields = json['fields'];
         for(var i=0; i<fields.length; ++i) {
@@ -61,8 +100,8 @@ function create_elasticlunr_index(json) {
     return index;
 }
 
-function search_elasticlunr_index(index, query) {
-    var elasticlunr_results = index.search(query);
+search_index['elasticlunr'] = function (index, query) {
+    var elasticlunr_results = index.search(query, {});
     console.log('elasticlunr_results:', elasticlunr_results);
     var results = []
     for(var i=0; i<elasticlunr_results.length; ++i) {
@@ -72,11 +111,19 @@ function search_elasticlunr_index(index, query) {
     return results;
 }
 
+var search_library = 'local';
 if (typeof elasticlunr !== 'undefined' && elasticlunr !== null) {
-    console.log('found elasticlunr');
-    var create_index = create_elasticlunr_index;
-    var search_index = search_elasticlunr_index;
+    search_library = 'elasticlunr';
+    console.log('found ' + search_library);
 }
+
+if (search_library === 'local') {
+    console.warn('No search library found. Falling back to naive implementation.')
+}
+else {
+    console.log('Using ' + search_library + ' for search.');
+}
+persistence['search_library'] = search_library;
 
 // generic
 
@@ -118,11 +165,18 @@ function show_search_results(results) {
     }
 }
 
+function fail_hook(status) {
+    var serp = document.getElementById('search-results');
+    var p = document.createElement('p');
+    p.innerHTML = 'Fetching search index failed with status code ' + status + '.';
+    serp.appendChild(p);
+}
+
 function ajax_hook(json) {
-    var index = create_index(json);
+    var index = create_index[search_library](json);
     persistence['index'] = index;
     if(first_query !== null && first_query !== '') {
-        var results = search_index(index, first_query);
+        var results = search_index[search_library](index, first_query);
     }
     else {
         var results = [];
@@ -130,4 +184,6 @@ function ajax_hook(json) {
     show_search_results(results);
 }
 
-apply_to_json(raw_url, ajax_hook);
+if(first_query !== null && first_query !== '') {
+    apply_to_json(get_index_url[search_library](), ajax_hook, fail_hook);
+}
