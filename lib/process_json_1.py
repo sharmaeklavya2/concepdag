@@ -21,7 +21,10 @@ class JsonProcessor:
         self.config = config
 
     def get_fpath_for_uci(self, uci2):
-        return pjoin(self.in_dir, uci2[1:] + '.json')
+        relpath = uci2[1:] + '.json'
+        if os.path.sep != '/':
+            relpath = relpath.replace('/', os.path.sep)
+        return pjoin(self.in_dir, relpath)
 
     def process_deps(self, d):
         d2 = []

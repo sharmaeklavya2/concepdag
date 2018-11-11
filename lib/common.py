@@ -15,6 +15,8 @@ def get_uci_fpath_list(nodes_dir):
             if ext == '.json':
                 fpath = pjoin(dirpath, fname)
                 uci = '/' + os.path.relpath(pjoin(dirpath, base), nodes_dir)
+                if os.path.sep != '/':
+                    uci = uci.replace(os.path.sep, '/')
                 uci_fpath_list.append((uci, fpath))
     return uci_fpath_list
 
