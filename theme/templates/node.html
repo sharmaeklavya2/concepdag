@@ -18,7 +18,6 @@
         <a href="{{ SITEURL }}/nodes{{ dep.uci }}.html">
             {% if dep.metadata.title %}
             <span class="deptitle">{{ dep.metadata.title }}</span>
-            <span class="depuci litooltip">{{ dep.uci }}</span>
             {% else %}
             <span class="deptitleuci">{{ dep.metadata.title }}</span>
             {% endif %}
@@ -27,7 +26,7 @@
         <span class="deptitleuci missing">{{ dep.uci }}</span>
         {% endif %}
         {% if DEP_REASON_MAP and dep.reason %}
-        <span class="reason litooltip">{{ DEP_REASON_MAP[dep.reason]|default(dep.reason) }}</span>
+        <span class="reason">{{ DEP_REASON_MAP[dep.reason]|default(dep.reason) }}</span>
         {% endif %}
         </li>
     {% endfor %}
