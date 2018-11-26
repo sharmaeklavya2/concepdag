@@ -3,6 +3,9 @@ html {
 }
 body {
     margin: 0;
+    color: #202020;
+    line-height: 1.5;
+    font-size: 1.1em;
 }
 #main {
     padding: 0 2rem 2rem 2rem;
@@ -14,7 +17,7 @@ nav {
 }
 #sitename {
     font-size: 2em;
-    padding: 0.25rem 2rem;
+    padding: 0 2rem;
     margin-right: 2rem;
     display: block;
     align-self: center;
