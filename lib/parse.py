@@ -171,7 +171,7 @@ class InputJsonParser:
             try:
                 relpath = d['path']
                 if os.path.sep != '/':
-                    relpapth = relpath.replace('/', os.path.sep)
+                    relpath = relpath.replace('/', os.path.sep)
             except KeyError:
                 raise self.ParseError('parse_document_section', 'include document must have a path',  # noqa
                     uci=self.uci, jsonpath=jsonpath)
