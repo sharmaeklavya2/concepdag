@@ -25,10 +25,9 @@ def get_context(config, pages_dir=None, d=None, uci=None):
         else:
             context['SITEURL'] = get_relative_site_url_from_uci(uci)
 
-    context['uci'] = uci
     if d is not None:
-        context['metadata'] = d['metadata']
-        context['deps'] = d['deps']
+        for k, v in d.items():
+            context[k] = v
         if uci is not None and pages_dir is not None:
             doc_path = pjoin(pages_dir, uci[1:] + '.html')
             try:
@@ -36,6 +35,7 @@ def get_context(config, pages_dir=None, d=None, uci=None):
                     context['document'] = fp.read()
             except FileNotFoundError:
                 context['document'] = None
+    context['uci'] = uci
     return context
 
 

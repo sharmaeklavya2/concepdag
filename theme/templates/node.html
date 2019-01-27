@@ -8,9 +8,7 @@
 <h1>{{ uci }}</h1>
 {% endif %}
 
-{% if deps %}
-{% for deplist in deps %}
-<h2> Dependencies: </h2>
+{% macro print_deplist(deplist) %}
     <ul class="deplist">
     {% for dep in deplist %}
         <li>
@@ -31,6 +29,12 @@
         </li>
     {% endfor %}
     </ul>
+{% endmacro %}
+
+{% if deps %}
+{% for deplist in deps %}
+<h2> Dependencies: </h2>
+{{ print_deplist(deplist) }}
 {% endfor %}
 {% else %}
 <h2 class="no-deps"> Dependencies: None </h2>
@@ -42,6 +46,15 @@
 {% elif metadata and metadata.description %}
 <div class="horizontal-rule"></div>
 <p>{{ metadata.description }}</p>
+{% endif %}
+
+<div class="horizontal-rule"></div>
+
+{% if rdeps %}
+<h2> Dependency for: </h2>
+{{ print_deplist(rdeps) }}
+{% else %}
+<h2 class="no-deps"> Dependency for: None </h2>
 {% endif %}
 
 {% endblock content %}
