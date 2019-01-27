@@ -4,7 +4,7 @@ import os
 from os.path import join as pjoin
 import argparse
 
-from lib import process_json_0, process_json_1, render
+from lib import parse, process, render
 
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 DEFAULT_THEME_DIR = pjoin(BASE_DIR, 'theme')
@@ -19,9 +19,9 @@ def main():
     args = parser.parse_args()
 
     print('Action: 0')
-    process_json_0.process_all(args.input_dir, args.intermediate_dir)
+    parse.process_all(args.input_dir, args.intermediate_dir)
     print('Action: 1')
-    process_json_1.process_all(args.input_dir, args.intermediate_dir, args.output_dir)
+    process.process_all(args.input_dir, args.intermediate_dir, args.output_dir)
     print('Action: render')
     render.render_all(args.theme, args.input_dir, args.intermediate_dir, args.output_dir)
 

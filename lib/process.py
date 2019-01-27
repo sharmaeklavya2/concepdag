@@ -1,5 +1,10 @@
 #!/usr/bin/env python3
 
+"""
+Read low-level intermediate files and process them to create high-level intermediate files.
+These high-level files include some final output and context for the renderer.
+"""
+
 import os
 import argparse
 from os.path import join as pjoin
@@ -8,6 +13,7 @@ from collections import OrderedDict
 from urllib.parse import urljoin
 
 from .common import get_uci_fpath_list, read_json_obj, write_json_obj, get_config
+from .graph import Graph
 
 
 class JsonProcessor:
@@ -15,39 +21,18 @@ class JsonProcessor:
     class ConfigError(ValueError):
         pass
 
-    def __init__(self, intermediate_dir, config):
+    def __init__(self, intermediate_dir, config, data, graph):
         self.in_dir = pjoin(intermediate_dir, 'json1')
         self.out_dir = pjoin(intermediate_dir, 'json2')
         self.config = config
+        self.data = data
+        self.graph = graph
 
     def get_fpath_for_uci(self, uci2):
         relpath = uci2[1:] + '.json'
         if os.path.sep != '/':
             relpath = relpath.replace('/', os.path.sep)
         return pjoin(self.in_dir, relpath)
-
-    def process_deps(self, d):
-        d2 = []
-        for i, deps in enumerate(d):
-            d3 = []
-            for uci2, reason in deps.items():
-                fpath2 = self.get_fpath_for_uci(uci2)
-                try:
-                    obj2 = read_json_obj(fpath2)
-                    deps2 = obj2['deps']
-                    metadata2 = obj2['metadata']
-                except FileNotFoundError:
-                    deps2, metadata2 = None, None
-                d4 = OrderedDict([
-                    ('uci', uci2),
-                    ('exists', os.path.exists(fpath2)),
-                    ('reason', reason),
-                    ('deps', deps2),
-                    ('metadata', metadata2),
-                ])
-                d3.append(d4)
-            d2.append(d3)
-        return d2
 
     def get_url(self, uci):
         html_path = 'nodes{}.html'.format(uci)
@@ -57,6 +42,29 @@ class JsonProcessor:
         else:
             return html_path
 
+    def get_deps_context(self, d):
+        d2 = []
+        for i, deps in enumerate(d):
+            d3 = []
+            for uci2, reason in deps.items():
+                try:
+                    obj2 = self.data[uci2]
+                    # deps2 = obj2['deps']
+                    metadata2 = obj2['metadata']
+                except KeyError:
+                    # deps2 = None
+                    metadata2 = None
+                d4 = OrderedDict([
+                    ('uci', uci2),
+                    ('exists', uci2 in self.data),
+                    ('reason', reason),
+                    # ('deps', deps2),
+                    ('metadata', metadata2),
+                ])
+                d3.append(d4)
+            d2.append(d3)
+        return d2
+
     def get_search_obj(self, d, uci, search_sep=' $ '):
         obj = OrderedDict(d['metadata'])
         obj['uci'] = uci
@@ -65,9 +73,10 @@ class JsonProcessor:
             obj['search'] = search_sep.join(d['metadata'].values())
         return obj
 
-    def process(self, d):
+    def get_context(self, d, uci):
         d2 = OrderedDict()
-        d2['deps'] = self.process_deps(d['deps'])
+        d2['deps'] = self.get_deps_context(d['deps'])
+        d2['rdeps'] = self.get_deps_context([self.graph.get_adj(uci)])[0]
         d2['metadata'] = d['metadata']
         return d2
 
@@ -92,20 +101,42 @@ def add_to_index_tree(tree, uci, url, metadata):
 
 
 def process_all(input_dir, intermediate_dir, output_dir):
+    uci_fpath_list_1 = get_uci_fpath_list(pjoin(intermediate_dir, 'json1'))
+    data = OrderedDict()
+    graph = Graph()
+    for uci, fpath1 in uci_fpath_list_1:
+        graph.add_vertex(uci)
+        d = read_json_obj(fpath1)
+        data[uci] = d
+
+    broken_deps = OrderedDict()
+    for uci, d in data.items():
+        for deps in d['deps']:
+            for uci2, reason in deps.items():
+                graph.add_edge(uci2, uci, reason)
+                if uci2 not in data:
+                    if uci2 not in broken_deps:
+                        broken_deps[uci2] = [uci]
+                    else:
+                        broken_deps[uci2].append(uci)
+
+    with open(pjoin(intermediate_dir, 'broken_deps.json'), 'w') as fp:
+        json.dump(broken_deps, fp, indent=4)
+
     config = get_config(input_dir)
+    processor = JsonProcessor(intermediate_dir, config, data, graph)
+
     search_objs = []
     index_tree = OrderedDict()
-    uci_fpath_list_1 = get_uci_fpath_list(pjoin(intermediate_dir, 'json1'))
-
-    processor = JsonProcessor(intermediate_dir, config)
-    for uci, fpath1 in uci_fpath_list_1:
-        fpath2 = pjoin(intermediate_dir, 'json2', uci[1:] + '.json')
-        d = read_json_obj(fpath1)
-        d2 = processor.process(d)
+    for uci, d in data.items():
         search_objs.append(processor.get_search_obj(d, uci))
         add_to_index_tree(index_tree, uci, processor.get_url(uci), d['metadata'])
-        write_json_obj(d2, fpath2, indent=4)
+        # Write render-context
+        fpath2 = pjoin(intermediate_dir, 'json2', uci[1:] + '.json')
+        context = processor.get_context(d, uci)
+        write_json_obj(context, fpath2, indent=4)
 
+    # Write index and search-info
     write_json_obj(index_tree, pjoin(intermediate_dir, 'index.json'), indent=4)
     search_fields = config.get('SEARCH_FIELDS')
     search_fields = search_fields if search_fields is not None else ['search']

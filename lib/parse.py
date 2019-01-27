@@ -1,5 +1,10 @@
 #!/usr/bin/env python3
 
+"""
+Read input files, clean them and store them in a standard,
+easy-for-computer-to-read format.
+"""
+
 import argparse
 import json
 import os
