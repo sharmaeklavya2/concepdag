@@ -22,6 +22,9 @@ class Graph:
         self.radj = []
         self.edge_labels = {}
 
+    def get_labels(self):
+        return self.index_to_label
+
     def add_vertex(self, label):
         if label not in self.label_to_index:
             self.label_to_index[label] = len(self.index_to_label)
@@ -58,3 +61,62 @@ class Graph:
         for v in self.adj[u]:
             res[self.index_to_label[v]] = self.edge_labels.get((u, v))
         return res
+
+    def scc(self):
+        n = len(self.index_to_label)
+        fintime_order = []
+        visited = [False] * n
+
+        def visit1(u):
+            if not visited[u]:
+                visited[u] = True
+                for v in self.adj[u]:
+                    if not visited[v]:
+                        visit1(v)
+                fintime_order.append(u)
+
+        for r in range(n):
+            if not visited[r]:
+                visit1(r)
+
+        visited = [False] * n
+        cc = [-1] * n
+        cclist = []
+
+        def visit2(u, cci):
+            if not visited[u]:
+                visited[u] = True
+                cc[u] = cci
+                cclist[-1].append(u)
+                for v in self.radj[u]:
+                    if not visited[v]:
+                        visit2(v, cci)
+
+        cci = 0
+        for r in reversed(fintime_order):
+            if not visited[r]:
+                cclist.append([])
+                visit2(r, cci)
+                cci += 1
+
+        cclist2 = [[self.index_to_label[u] for u in l] for l in cclist]
+        return cclist2
+
+
+def main():
+    n = int(input())
+    graph = Graph()
+    for i in range(n):
+        graph.add_vertex(i)
+    try:
+        while True:
+            u, v = [int(x) for x in input().split()]
+            graph.add_edge(u, v)
+    except EOFError:
+        pass
+
+    print(graph.scc())
+
+
+if __name__ == '__main__':
+    main()

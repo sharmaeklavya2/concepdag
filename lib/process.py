@@ -136,6 +136,21 @@ def process_all(input_dir, intermediate_dir, output_dir):
         context = processor.get_context(d, uci)
         write_json_obj(context, fpath2, indent=4)
 
+    # SCCs and toposort
+    scc_list = graph.scc()
+    multi_node_sccs = OrderedDict()
+    flat_list = []
+    for cci, vlist in enumerate(scc_list):
+        if len(vlist) > 1:
+            multi_node_sccs[cci] = vlist
+        flat_list += vlist
+    with open(pjoin(intermediate_dir, 'multi_node_sccs.json'), 'w') as fp:
+        json.dump(multi_node_sccs, fp, indent=4)
+    with open(pjoin(intermediate_dir, 'toposort.txt'), 'w') as fp:
+        for uci in flat_list:
+            if uci in data:
+                print(uci, file=fp)
+
     # Write index and search-info
     write_json_obj(index_tree, pjoin(intermediate_dir, 'index.json'), indent=4)
     search_fields = config.get('SEARCH_FIELDS')
