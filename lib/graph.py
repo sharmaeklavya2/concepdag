@@ -21,6 +21,7 @@ class Graph:
         self.adj = []
         self.radj = []
         self.edge_labels = {}
+        self.depth = None
 
     def get_labels(self):
         return self.index_to_label
@@ -62,6 +63,15 @@ class Graph:
             res[self.index_to_label[v]] = self.edge_labels.get((u, v))
         return res
 
+    def get_depth(self, uci):
+        if self.depth is None:
+            return None
+        else:
+            try:
+                return self.depth[self.label_to_index[uci]]
+            except KeyError as e:
+                raise self.VertexNotFound(e.args[0])
+
     def scc(self):
         n = len(self.index_to_label)
         fintime_order = []
@@ -82,6 +92,7 @@ class Graph:
         visited = [False] * n
         cc = [-1] * n
         cclist = []
+        self.depth = [0] * n
 
         def visit2(u, cci):
             if not visited[u]:
@@ -89,6 +100,8 @@ class Graph:
                 cc[u] = cci
                 cclist[-1].append(u)
                 for v in self.radj[u]:
+                    if cc[v] != cc[u]:
+                        self.depth[u] = max(self.depth[u], self.depth[v] + 1)
                     if not visited[v]:
                         visit2(v, cci)
 

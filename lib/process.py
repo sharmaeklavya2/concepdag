@@ -51,14 +51,20 @@ class JsonProcessor:
                     obj2 = self.data[uci2]
                     # deps2 = obj2['deps']
                     metadata2 = obj2['metadata']
+                    try:
+                        depth2 = self.graph.get_depth(uci2)
+                    except self.graph.VertexNotFound:
+                        depth2 = None
                 except KeyError:
                     # deps2 = None
                     metadata2 = None
+                    depth2 = None
                 d4 = OrderedDict([
                     ('uci', uci2),
                     ('exists', uci2 in self.data),
                     ('reason', reason),
                     # ('deps', deps2),
+                    ('depth', depth2),
                     ('metadata', metadata2),
                 ])
                 d3.append(d4)
@@ -75,9 +81,10 @@ class JsonProcessor:
 
     def get_context(self, d, uci):
         d2 = OrderedDict()
+        d2['depth'] = self.graph.get_depth(uci)
+        d2['metadata'] = d['metadata']
         d2['deps'] = self.get_deps_context(d['deps'])
         d2['rdeps'] = self.get_deps_context([self.graph.get_adj(uci)])[0]
-        d2['metadata'] = d['metadata']
         return d2
 
 
@@ -85,7 +92,7 @@ def section_id_to_name(s):
     return s.replace('-', ' ').replace('_', ' ').title()
 
 
-def add_to_index_tree(tree, uci, url, metadata):
+def add_to_index_tree(tree, uci, url, metadata, graph):
     uci_parts = uci[1:].split('/')
     for i, part in enumerate(uci_parts):
         if i < len(uci_parts) - 1:
@@ -97,7 +104,12 @@ def add_to_index_tree(tree, uci, url, metadata):
                 tree2 = tree[bpart]
             tree = tree2
         else:
-            tree[part] = {'uci': uci, 'url': url, 'metadata': metadata}
+            tree[part] = {
+                'uci': uci,
+                'url': url,
+                'depth': graph.get_depth(uci),
+                'metadata': metadata,
+            }
 
 
 def process_all(input_dir, intermediate_dir, output_dir):
@@ -149,7 +161,7 @@ def process_all(input_dir, intermediate_dir, output_dir):
     index_tree = OrderedDict()
     for uci, d in data.items():
         search_objs.append(processor.get_search_obj(d, uci))
-        add_to_index_tree(index_tree, uci, processor.get_url(uci), d['metadata'])
+        add_to_index_tree(index_tree, uci, processor.get_url(uci), d['metadata'], graph)
         # Write render-context
         fpath2 = pjoin(intermediate_dir, 'json2', uci[1:] + '.json')
         context = processor.get_context(d, uci)
