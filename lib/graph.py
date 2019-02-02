@@ -23,6 +23,8 @@ class Graph:
         self.edge_labels = {}
         self.depth = None
         self.topo_order = None
+        self.tadj = None
+        self.tradj = None
 
     def get_labels(self):
         return self.index_to_label
@@ -82,6 +84,57 @@ class Graph:
             except KeyError as e:
                 raise self.VertexNotFound(e.args[0])
 
+    def get_tadj(self, uci):
+        if self.tadj is None:
+            return None
+        else:
+            try:
+                tadju = self.tadj[self.label_to_index[uci]]
+                return [self.index_to_label[x] for x in tadju]
+            except KeyError as e:
+                raise self.VertexNotFound(e.args[0])
+
+    def get_tradj(self, uci):
+        if self.tadj is None:
+            return None
+        else:
+            try:
+                tradju = self.tradj[self.label_to_index[uci]]
+                return [self.index_to_label[x] for x in tradju]
+            except KeyError as e:
+                raise self.VertexNotFound(e.args[0])
+
+    def get_n_tradj(self, uci):
+        if self.tadj is None:
+            return None
+        else:
+            try:
+                return len(self.tradj[self.label_to_index[uci]])
+            except KeyError as e:
+                raise self.VertexNotFound(e.args[0])
+
+    def transitive_closure(self):
+        n = len(self.adj)
+        self.tadj = [[] for i in range(n)]
+        self.tradj = [[] for i in range(n)]
+        visited = None
+
+        def visit(r, u, nbr_arr, tarr):
+            if u not in visited:
+                visited.add(u)
+                tarr.append(u)
+                for v in nbr_arr[u]:
+                    if v not in visited:
+                        visit(r, v, nbr_arr, tarr)
+
+        for r in range(n):
+            visited = set()
+            visit(r, r, self.adj, self.tadj[r])
+            visited = set()
+            visit(r, r, self.radj, self.tradj[r])
+            if self.topo_order is not None:
+                self.tradj[r].sort(key=(lambda x: self.topo_order[x]))
+
     def scc(self):
         n = len(self.index_to_label)
         fintime_order = []
@@ -139,7 +192,19 @@ def main():
     except EOFError:
         pass
 
-    print(graph.scc())
+    cclist = graph.scc()
+    print('SCCs:')
+    for cci, vlist in enumerate(cclist):
+        print(cci, vlist)
+    print('depth:', [graph.get_depth(i) for i in range(n)])
+    print('topo_order', [graph.get_topo_order(i) for i in range(n)])
+    graph.transitive_closure()
+    print('Transitive adjacent:')
+    for i in range(n):
+        print(str(i) + ':', graph.get_tadj(i))
+    print('Transitive reverse adjacent:')
+    for i in range(n):
+        print(str(i) + ':', graph.get_tradj(i))
 
 
 if __name__ == '__main__':
