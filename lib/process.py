@@ -54,23 +54,24 @@ class JsonProcessor:
                     try:
                         depth2 = self.graph.get_depth(uci2)
                         topo_order2 = self.graph.get_topo_order(uci2)
-                        n_tdeps = self.graph.get_n_tradj(uci2) - 1
+                        n_deps, n_rdeps, n_tdeps, n_trdeps = self.graph.get_degrees(uci2)
                     except self.graph.VertexNotFound:
                         depth2 = None
                         topo_order2 = None
-                        n_tdeps = None
+                        n_deps, n_rdeps, n_tdeps, n_trdeps = None, None, None, None
                 except KeyError:
-                    # deps2 = None
                     metadata2 = None
                     depth2 = None
                 d4 = OrderedDict([
                     ('uci', uci2),
                     ('exists', uci2 in self.data),
                     ('reason', reason),
-                    # ('deps', deps2),
                     ('depth', depth2),
                     ('topo_order', topo_order2),
+                    ('n_deps', n_deps),
+                    ('n_rdeps', n_rdeps),
                     ('n_tdeps', n_tdeps),
+                    ('n_trdeps', n_trdeps),
                     ('metadata', metadata2),
                 ])
                 d3.append(d4)
@@ -89,7 +90,7 @@ class JsonProcessor:
         d2 = OrderedDict()
         d2['depth'] = self.graph.get_depth(uci)
         d2['topo_order'] = self.graph.get_topo_order(uci)
-        d2['n_tdeps'] = self.graph.get_n_tradj(uci) - 1
+        d2['n_deps'], d2['n_rdeps'], d2['n_tdeps'], d2['n_trdeps'] = self.graph.get_degrees(uci)
         d2['metadata'] = d['metadata']
         d2['deps'] = self.get_deps_context(d['deps'])
         d2['rdeps'] = self.get_deps_context([self.graph.get_adj(uci)])[0]
@@ -112,12 +113,16 @@ def add_to_index_tree(tree, uci, url, metadata, graph):
                 tree2 = tree[bpart]
             tree = tree2
         else:
+            n_deps, n_rdeps, n_tdeps, n_trdeps = graph.get_degrees(uci)
             tree[part] = {
                 'uci': uci,
                 'url': url,
                 'depth': graph.get_depth(uci),
                 'topo_order': graph.get_topo_order(uci),
-                'n_tdeps': graph.get_n_tradj(uci) - 1,
+                'n_deps': n_deps,
+                'n_rdeps': n_rdeps,
+                'n_tdeps': n_tdeps,
+                'n_trdeps': n_trdeps,
                 'metadata': metadata,
             }
 

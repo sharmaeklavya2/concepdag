@@ -56,6 +56,17 @@ class Graph:
             res[self.index_to_label[u]] = self.edge_labels.get((u, v))
         return res
 
+    def get_degrees(self, label):
+        try:
+            u = self.label_to_index[label]
+        except KeyError as e:
+            raise self.VertexNotFound(e.args[0])
+        tin_nbrs = self.tradj[u]
+        tout_nbrs = self.tadj[u]
+        return (len(self.radj[u]), len(self.adj[u]),
+            None if tin_nbrs is None else len(tin_nbrs) - 1,
+            None if tout_nbrs is None else len(tout_nbrs) - 1)
+
     def get_adj(self, label):
         try:
             u = self.label_to_index[label]
@@ -101,15 +112,6 @@ class Graph:
             try:
                 tradju = self.tradj[self.label_to_index[uci]]
                 return [self.index_to_label[x] for x in tradju]
-            except KeyError as e:
-                raise self.VertexNotFound(e.args[0])
-
-    def get_n_tradj(self, uci):
-        if self.tadj is None:
-            return None
-        else:
-            try:
-                return len(self.tradj[self.label_to_index[uci]])
             except KeyError as e:
                 raise self.VertexNotFound(e.args[0])
 
