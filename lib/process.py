@@ -54,9 +54,11 @@ class JsonProcessor:
                     try:
                         depth2 = self.graph.get_depth(uci2)
                         topo_order2 = self.graph.get_topo_order(uci2)
+                        n_tdeps = self.graph.get_n_tradj(uci2) - 1
                     except self.graph.VertexNotFound:
                         depth2 = None
                         topo_order2 = None
+                        n_tdeps = None
                 except KeyError:
                     # deps2 = None
                     metadata2 = None
@@ -68,6 +70,7 @@ class JsonProcessor:
                     # ('deps', deps2),
                     ('depth', depth2),
                     ('topo_order', topo_order2),
+                    ('n_tdeps', n_tdeps),
                     ('metadata', metadata2),
                 ])
                 d3.append(d4)
@@ -86,6 +89,7 @@ class JsonProcessor:
         d2 = OrderedDict()
         d2['depth'] = self.graph.get_depth(uci)
         d2['topo_order'] = self.graph.get_topo_order(uci)
+        d2['n_tdeps'] = self.graph.get_n_tradj(uci) - 1
         d2['metadata'] = d['metadata']
         d2['deps'] = self.get_deps_context(d['deps'])
         d2['rdeps'] = self.get_deps_context([self.graph.get_adj(uci)])[0]
@@ -113,6 +117,7 @@ def add_to_index_tree(tree, uci, url, metadata, graph):
                 'url': url,
                 'depth': graph.get_depth(uci),
                 'topo_order': graph.get_topo_order(uci),
+                'n_tdeps': graph.get_n_tradj(uci) - 1,
                 'metadata': metadata,
             }
 
@@ -142,8 +147,9 @@ def process_all(input_dir, intermediate_dir, output_dir):
     with open(pjoin(intermediate_dir, 'broken_deps.json'), 'w') as fp:
         json.dump(broken_deps, fp, indent=4)
 
-    # SCCs and toposort
+    # SCCs, toposort and transitive dependencies
     scc_list = graph.scc()
+    graph.transitive_closure()
     multi_node_sccs = OrderedDict()
     flat_list = []
     for cci, vlist in enumerate(scc_list):

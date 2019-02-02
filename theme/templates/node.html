@@ -50,15 +50,17 @@
 
 <div class="horizontal-rule"></div>
 
-<ul>
-<li>Depth: {{ depth }}</li>
-</ul>
-
 {% if rdeps %}
 <h2> Dependency for: </h2>
 {{ print_deplist(rdeps) }}
 {% else %}
 <h2 class="no-deps"> Dependency for: None </h2>
 {% endif %}
+
+<h2> Info: </h2>
+<ul>
+<li>Depth: {{ depth }}</li>
+<li>Number of transitive dependencies: {{ n_tdeps }}</li>
+</ul>
 
 {% endblock content %}
