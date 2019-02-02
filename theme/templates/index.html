@@ -24,6 +24,12 @@
 <h1>{{ TITLE }}</h1>
 <p>{{ DESCRIPTION }}</p>
 {% if index_tree %}
+<div class="tree-collapsible">
 {{ print_tree(index_tree) }}
+</div>
 {% endif %}
 {% endblock content %}
+
+{% block sync_js %}
+<script type="text/javascript" src="{{ SITEURL }}/theme/tree_collapse.js"></script>
+{% endblock sync_js %}
