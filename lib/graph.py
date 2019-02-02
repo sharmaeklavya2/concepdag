@@ -22,6 +22,7 @@ class Graph:
         self.radj = []
         self.edge_labels = {}
         self.depth = None
+        self.topo_order = None
 
     def get_labels(self):
         return self.index_to_label
@@ -72,6 +73,15 @@ class Graph:
             except KeyError as e:
                 raise self.VertexNotFound(e.args[0])
 
+    def get_topo_order(self, uci):
+        if self.topo_order is None:
+            return None
+        else:
+            try:
+                return self.topo_order[self.label_to_index[uci]]
+            except KeyError as e:
+                raise self.VertexNotFound(e.args[0])
+
     def scc(self):
         n = len(self.index_to_label)
         fintime_order = []
@@ -112,6 +122,7 @@ class Graph:
                 visit2(r, cci)
                 cci += 1
 
+        self.topo_order = cc
         cclist2 = [[self.index_to_label[u] for u in l] for l in cclist]
         return cclist2
 
