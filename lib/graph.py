@@ -110,7 +110,7 @@ class Graph:
                 cc[u] = cci
                 cclist[-1].append(u)
                 for v in self.radj[u]:
-                    if cc[v] != cc[u]:
+                    if cc[v] != cc[u] and cc[v] != -1:
                         self.depth[u] = max(self.depth[u], self.depth[v] + 1)
                     if not visited[v]:
                         visit2(v, cci)
