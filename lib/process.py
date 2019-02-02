@@ -101,6 +101,7 @@ def add_to_index_tree(tree, uci, url, metadata):
 
 
 def process_all(input_dir, intermediate_dir, output_dir):
+    # read data from file
     uci_fpath_list_1 = get_uci_fpath_list(pjoin(intermediate_dir, 'json1'))
     data = OrderedDict()
     graph = Graph()
@@ -109,6 +110,7 @@ def process_all(input_dir, intermediate_dir, output_dir):
         d = read_json_obj(fpath1)
         data[uci] = d
 
+    # add edges to graph and detect broken dependencies
     broken_deps = OrderedDict()
     for uci, d in data.items():
         for deps in d['deps']:
@@ -122,19 +124,6 @@ def process_all(input_dir, intermediate_dir, output_dir):
 
     with open(pjoin(intermediate_dir, 'broken_deps.json'), 'w') as fp:
         json.dump(broken_deps, fp, indent=4)
-
-    config = get_config(input_dir)
-    processor = JsonProcessor(intermediate_dir, config, data, graph)
-
-    search_objs = []
-    index_tree = OrderedDict()
-    for uci, d in data.items():
-        search_objs.append(processor.get_search_obj(d, uci))
-        add_to_index_tree(index_tree, uci, processor.get_url(uci), d['metadata'])
-        # Write render-context
-        fpath2 = pjoin(intermediate_dir, 'json2', uci[1:] + '.json')
-        context = processor.get_context(d, uci)
-        write_json_obj(context, fpath2, indent=4)
 
     # SCCs and toposort
     scc_list = graph.scc()
@@ -151,7 +140,21 @@ def process_all(input_dir, intermediate_dir, output_dir):
             if uci in data:
                 print(uci, file=fp)
 
-    # Write index and search-info
+    # Make JsonProcessor as per config and data
+    config = get_config(input_dir)
+    processor = JsonProcessor(intermediate_dir, config, data, graph)
+
+    # create search index, hierarchical index and render context
+    search_objs = []
+    index_tree = OrderedDict()
+    for uci, d in data.items():
+        search_objs.append(processor.get_search_obj(d, uci))
+        add_to_index_tree(index_tree, uci, processor.get_url(uci), d['metadata'])
+        # Write render-context
+        fpath2 = pjoin(intermediate_dir, 'json2', uci[1:] + '.json')
+        context = processor.get_context(d, uci)
+        write_json_obj(context, fpath2, indent=4)
+
     write_json_obj(index_tree, pjoin(intermediate_dir, 'index.json'), indent=4)
     search_fields = config.get('SEARCH_FIELDS')
     search_fields = search_fields if search_fields is not None else ['search']
