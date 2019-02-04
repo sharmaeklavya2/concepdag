@@ -62,6 +62,8 @@ class JsonProcessor:
                 except KeyError:
                     metadata2 = None
                     depth2 = None
+                    topo_order2 = None
+                    n_deps, n_rdeps, n_tdeps, n_trdeps = None, None, None, None
                 d4 = OrderedDict([
                     ('uci', uci2),
                     ('exists', uci2 in self.data),
