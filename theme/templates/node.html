@@ -61,7 +61,7 @@
 <ul>
 {% if depth or depth == 0 %}<li>Depth: {{ depth }}</li>{% endif %}
 {% if n_tdeps or n_tdeps == 0 %}<li>Number of transitive dependencies: {{ n_tdeps }}</li>{% endif %}
-{% if n_trdeps or n_trdeps == 0 %}<li>Number of transitive reverse dependencies: {{ n_trdeps }}</li>{% endif %}
+{#{% if n_trdeps or n_trdeps == 0 %}<li>Number of transitive reverse dependencies: {{ n_trdeps }}</li>{% endif %}#}
 </ul>
 
 {% endblock content %}
