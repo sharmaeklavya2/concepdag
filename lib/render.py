@@ -70,7 +70,7 @@ def render_all(theme_dir, input_dir, intermediate_dir, output_dir):
     context = get_context(config)
     index_tree_path = pjoin(intermediate_dir, 'index.json')
     context['index_tree'] = read_json_obj(index_tree_path)
-    for fname in ('index.html', 'search.html'):
+    for fname in ('index.html', 'search.html', 'about.html'):
         template = jinja_env.get_template(fname)
         s = template.render(**context)
         s = rstrip_every_line(s)

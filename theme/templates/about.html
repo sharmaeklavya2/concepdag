@@ -1,0 +1,26 @@
+{% extends "base.html" %}
+
+{% block content %}
+<h1>About {{ TITLE }}</h1>
+
+{% if LONG_DESCRIPTION %}
+<p>{{ LONG_DESCRIPTION }}</p>
+{% elif DESCRIPTION %}
+<p>{{ DESCRIPTION }}</p>
+{% endif %}
+
+<p>{{ NAME }} is generated using
+<a href="https://github.com/sharmaeklavya2/concepdag">ConcepDAG</a>.
+ConcepDAG is a tool to visualize dependencies between things
+in the form of a static website.</p>
+
+<p>If you want to contribute, check out the source code of these projects:</p>
+<ul>
+{% if REPO %}
+<li><a href="{{ REPO }}" target="_blank">{{ NAME }}</a></li>
+{% endif %}
+<li><a href="https://github.com/sharmaeklavya2/concepdag" target="_blank">
+ConcepDAG</a></li>
+</ul>
+
+{% endblock content %}
