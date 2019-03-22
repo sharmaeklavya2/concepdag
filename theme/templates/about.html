@@ -23,4 +23,13 @@ in the form of a static website.</p>
 ConcepDAG</a></li>
 </ul>
 
+{% if SIMILAR_PROJECTS %}
+<p>You may also be interested in these other similar projects:</p>
+<ul>
+{% for name, link in SIMILAR_PROJECTS.items() %}
+<li><a href="{{ link }}" target="_blank">{{ name }}</a></li>
+{% endfor %}
+</ul>
+{% endif %}
+
 {% endblock content %}
