@@ -3,7 +3,8 @@
 ConcepDAG is a tool to visualize dependencies between concepts.
 For each concept, create a JSON file which describes the concept itself
 and which lists out the concepts it depends on.
-ConcepDAG will take all these JSON files as input and create a static website.
+ConcepDAG will take all these JSON files as input and create a static website
+([example](https://sharmaeklavya2.github.io/theoremdep/)).
 
 ConcepDAG is inspired by [Metacademy](https://metacademy.org/about).
 
@@ -33,7 +34,7 @@ If you don't do that, the default theme will be used.
 ### Example
 
 I used ConcepDAG to create [TheoremDep](https://sharmaeklavya2.github.io/theoremdep/),
-a website to track dependencies between theorems and definitions.
+a website to track dependencies between theorems.
 
 You can view the `input_dir` for TheoremDep at its source repository:
 <https://github.com/sharmaeklavya2/theoremdep-source>
@@ -52,10 +53,10 @@ Metacademy tracks prerequisites between 'concepts to learn' (to learn A, you mus
 ConcepDAG is made with a more general prerequisite-tracking aim in mind.
 
 The main difference is that ConcepDAG generates a static website,
-while Metacademy generates a dynamic website:
+whereas Metacademy is a dynamic web application.
 
 * Metacademy is slow.
   I'm disappointed by the speed of their servers.
   A static website can be faster.
 * Deploying an instance of a dynamic website is either difficult or costly.
-* Metacademy allows easy content updation. ConcepDAG can't do that.
+* Metacademy allows easy content updation. ConcepDAG can't do that (yet).
