@@ -78,6 +78,9 @@ def render_all(theme_dir, input_dir, intermediate_dir, output_dir):
         write_string_to_file(s, output_fpath)
 
     # copy static assets
+    shutil.copyfile(pjoin(intermediate_dir, 'graph.svg'), pjoin(output_dir, 'graph.svg'))
+
+    # copy theme
     input_dirpath = pjoin(theme_dir, 'static')
     output_dirpath = pjoin(output_dir, 'theme')
     try:

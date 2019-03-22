@@ -5,12 +5,14 @@ Read low-level intermediate files and process them to create high-level intermed
 These high-level files include some final output and context for the renderer.
 """
 
+import sys
 import os
 import argparse
 from os.path import join as pjoin
 import json
 from collections import OrderedDict
 from urllib.parse import urljoin
+import subprocess
 
 from .common import get_uci_fpath_list, read_json_obj, write_json_obj, get_config
 from .graph import Graph
@@ -150,6 +152,27 @@ def process_all(input_dir, intermediate_dir, output_dir):
                         broken_deps[uci2] = [uci]
                     else:
                         broken_deps[uci2].append(uci)
+
+    with open(pjoin(intermediate_dir, 'graph.dot'), 'w') as fp:
+        print('digraph concepdag {', file=fp)
+        for uci, d in data.items():
+            label = d['metadata'].get('title')
+            if label is not None:
+                print('"{}" [label="{}"]'.format(uci, label), file=fp)
+        for uci, d in data.items():
+            for deps in d['deps']:
+                for uci2, reason in deps.items():
+                    if reason is None:
+                        print('"{}" -> "{}"'.format(uci2, uci), file=fp)
+                    else:
+                        print('"{}" -> "{}" [label="{}"]'.format(uci2, uci, reason), file=fp)
+        print('}', file=fp)
+
+    try:
+        subprocess.check_call(['dot', '-Tsvg', pjoin(intermediate_dir, 'graph.dot'), '-o',
+            pjoin(intermediate_dir, 'graph.svg')])
+    except FileNotFoundError:
+        print('dot is not installed, not generating graph', file=sys.stderr)
 
     with open(pjoin(intermediate_dir, 'broken_deps.json'), 'w') as fp:
         json.dump(broken_deps, fp, indent=4)
