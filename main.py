@@ -18,9 +18,9 @@ def main():
     parser.add_argument('--theme', default=DEFAULT_THEME_DIR)
     args = parser.parse_args()
 
-    print('Action: 0')
+    print('Action: parse')
     parse.process_all(args.input_dir, args.intermediate_dir)
-    print('Action: 1')
+    print('Action: process')
     process.process_all(args.input_dir, args.intermediate_dir, args.output_dir)
     print('Action: render')
     render.render_all(args.theme, args.input_dir, args.intermediate_dir, args.output_dir)
