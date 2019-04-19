@@ -13,7 +13,9 @@ from .common import (
 def get_jinja_env(templates_dir):
     return Environment(
         loader=FileSystemLoader(templates_dir),
-        autoescape=select_autoescape([])
+        autoescape=select_autoescape([]),
+        trim_blocks=True,
+        lstrip_blocks=True,
     )
 
 

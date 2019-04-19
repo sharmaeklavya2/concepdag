@@ -1,36 +1,34 @@
 {% extends "base.html" %}
 
-{% block content %}
+{% macro print_deplist(deplist) %}
+<ul class="deplist">
+{% for dep in deplist %}
+    <li>
+    {% if dep.exists %}
+    <a href="{{ SITEURL }}/nodes{{ dep.uci }}.html">
+        {% if dep.metadata.title %}
+        <span class="deptitle">{{ dep.metadata.title }}</span>
+        {% else %}
+        <span class="deptitleuci">{{ dep.metadata.title }}</span>
+        {% endif %}
+    </a>
+    {% else %}
+    <span class="deptitleuci missing">{{ dep.uci }}</span>
+    {% endif %}
+    {% if DEP_REASON_MAP and dep.reason %}
+    <span class="reason">{{ DEP_REASON_MAP[dep.reason]|default(dep.reason) }}</span>
+    {% endif %}
+    </li>
+{% endfor %}
+</ul>
+{%- endmacro %}
 
+{% block content %}
 {% if metadata and metadata.title %}
 <h1>{{ metadata.title }}</h1>
 {% elif uci %}
 <h1>{{ uci }}</h1>
 {% endif %}
-
-{% macro print_deplist(deplist) %}
-    <ul class="deplist">
-    {% for dep in deplist %}
-        <li>
-        {% if dep.exists %}
-        <a href="{{ SITEURL }}/nodes{{ dep.uci }}.html">
-            {% if dep.metadata.title %}
-            <span class="deptitle">{{ dep.metadata.title }}</span>
-            {% else %}
-            <span class="deptitleuci">{{ dep.metadata.title }}</span>
-            {% endif %}
-        </a>
-        {% else %}
-        <span class="deptitleuci missing">{{ dep.uci }}</span>
-        {% endif %}
-        {% if DEP_REASON_MAP and dep.reason %}
-        <span class="reason">{{ DEP_REASON_MAP[dep.reason]|default(dep.reason) }}</span>
-        {% endif %}
-        </li>
-    {% endfor %}
-    </ul>
-{% endmacro %}
-
 {% if deps %}
 {% for deplist in deps %}
 <h2> Dependencies: </h2>
@@ -49,19 +47,16 @@
 {% endif %}
 
 <div class="horizontal-rule"></div>
-
 {% if rdeps %}
 <h2> Dependency for: </h2>
 {{ print_deplist(rdeps) }}
 {% else %}
 <h2 class="no-deps"> Dependency for: None </h2>
 {% endif %}
-
 <h2> Info: </h2>
 <ul>
-{% if depth or depth == 0 %}<li>Depth: {{ depth }}</li>{% endif %}
+{%- if depth or depth == 0 %}<li>Depth: {{ depth }}</li>{% endif %}
 {% if n_tdeps or n_tdeps == 0 %}<li>Number of transitive dependencies: {{ n_tdeps }}</li>{% endif %}
 {#{% if n_trdeps or n_trdeps == 0 %}<li>Number of transitive reverse dependencies: {{ n_trdeps }}</li>{% endif %}#}
 </ul>
-
 {% endblock content %}

@@ -1,7 +1,7 @@
 {% extends "base.html" %}
 
-{% block css %}{{super()}}
-<style>
+{% block css %}
+{{ super() }}<style>
 .search-result-title {
     font-size: 1.2em;
 }
@@ -31,10 +31,10 @@
 </style>
 {% endblock css %}
 
-{% block sync_js %}{{super()}}
-{% if SEARCH_SYNC_JS %}{% for script in SEARCH_SYNC_JS %}
+{% block sync_js %}
+{{ super() }}{% for script in SEARCH_SYNC_JS %}
 <script type="text/javascript" src="{{script}}"></script>
-{% endfor %}{% endif %}
+{% endfor %}
 <script type="text/javascript">var siteurl = '{{ SITEURL }}';</script>
 <script src="{{ SITEURL }}/theme/search.js"></script>
 {% endblock sync_js %}
