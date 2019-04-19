@@ -32,7 +32,7 @@ KNOWN_FORMATS = ('html', 'txt', 'raw', 'tex', 'md', 'mdonly')
 def get_markdown_instance():
     global global_markdown
     if global_markdown is None:
-        global_markdown = Markdown()
+        global_markdown = Markdown(extensions=['fenced_code'])
     return global_markdown
 
 
