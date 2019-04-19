@@ -39,17 +39,6 @@ def get_context(config, pages_dir=None, d=None, uci=None):
     return context
 
 
-def rstrip_every_line(text):
-    lines = text.split('\n')
-    lines2 = []
-    for line in lines:
-        line2 = line.rstrip()
-        if line2:
-            lines2.append(line2)
-    lines2.append('')
-    return '\n'.join(lines2)
-
-
 def render_all(theme_dir, input_dir, intermediate_dir, output_dir):
     jinja_env = get_jinja_env(pjoin(theme_dir, 'templates'))
     config = get_config(input_dir)
@@ -62,7 +51,6 @@ def render_all(theme_dir, input_dir, intermediate_dir, output_dir):
         d = read_json_obj(fpath)
         context = get_context(config, pages_dir, d, uci)
         rendered = template.render(**context)
-        rendered = rstrip_every_line(rendered)
         output_fpath = pjoin(output_dir, 'nodes', uci[1:] + '.html')
         write_string_to_file(rendered, output_fpath)
 
@@ -73,7 +61,6 @@ def render_all(theme_dir, input_dir, intermediate_dir, output_dir):
     for fname in ('index.html', 'search.html', 'about.html'):
         template = jinja_env.get_template(fname)
         s = template.render(**context)
-        s = rstrip_every_line(s)
         output_fpath = pjoin(output_dir, fname)
         write_string_to_file(s, output_fpath)
 
