@@ -106,7 +106,7 @@ class Graph:
                 raise self.VertexNotFound(e.args[0])
 
     def get_tradj(self, uci):
-        if self.tadj is None:
+        if self.tradj is None:
             return None
         else:
             try:
