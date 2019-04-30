@@ -59,4 +59,13 @@
 {% if n_tdeps or n_tdeps == 0 %}<li>Number of transitive dependencies: {{ n_tdeps }}</li>{% endif %}
 {#{% if n_trdeps or n_trdeps == 0 %}<li>Number of transitive reverse dependencies: {{ n_trdeps }}</li>{% endif %}#}
 </ul>
+
+{% if tdeps %}
+<div class="horizontal-rule"></div>
+<h2> Transitive dependencies: </h2>
+{{ print_deplist(tdeps) }}
+{% else %}
+<h2 class="no-deps"> Transitive dependencies: None </h2>
+{% endif %}
+
 {% endblock content %}

@@ -11,6 +11,7 @@ import argparse
 from os.path import join as pjoin
 import json
 from collections import OrderedDict
+from collections import abc
 from urllib.parse import urljoin
 import subprocess
 
@@ -48,7 +49,13 @@ class JsonProcessor:
         d2 = []
         for i, deps in enumerate(d):
             d3 = []
-            for uci2, reason in deps.items():
+            if isinstance(deps, abc.Mapping):
+                g = deps.items()
+            elif isinstance(deps, abc.Sequence):
+                g = ((x, None) for x in deps)
+            else:
+                raise TypeError("d[{}] should be a Mapping or a Sequence".format(i))
+            for uci2, reason in g:
                 try:
                     obj2 = self.data[uci2]
                     # deps2 = obj2['deps']
@@ -90,7 +97,7 @@ class JsonProcessor:
             obj['search'] = search_sep.join(d['metadata'].values())
         return obj
 
-    def get_context(self, d, uci):
+    def get_context(self, d, uci, find_tdeps):
         d2 = OrderedDict()
         d2['depth'] = self.graph.get_depth(uci)
         d2['topo_order'] = self.graph.get_topo_order(uci)
@@ -98,6 +105,7 @@ class JsonProcessor:
         d2['metadata'] = d['metadata']
         d2['deps'] = self.get_deps_context(d['deps'])
         d2['rdeps'] = self.get_deps_context([self.graph.get_adj(uci)])[0]
+        d2['tdeps'] = self.get_deps_context([self.graph.get_tradj(uci)])[0]
         return d2
 
 
@@ -205,7 +213,7 @@ def process_all(input_dir, intermediate_dir, output_dir):
         add_to_index_tree(index_tree, uci, processor.get_url(uci), d['metadata'], graph)
         # Write render-context
         fpath2 = pjoin(intermediate_dir, 'json2', uci[1:] + '.json')
-        context = processor.get_context(d, uci)
+        context = processor.get_context(d, uci, config.get("FIND_TDEPS", True))
         write_json_obj(context, fpath2, indent=4)
 
     write_json_obj(index_tree, pjoin(intermediate_dir, 'index.json'), indent=4)
