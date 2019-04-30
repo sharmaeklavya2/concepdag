@@ -1,7 +1,7 @@
 {% extends "base.html" %}
 
 {% macro print_deplist(deplist) %}
-<ul class="deplist">
+<ol class="deplist">
 {% for dep in deplist %}
     <li>
     {% if dep.exists %}
@@ -20,7 +20,7 @@
     {% endif %}
     </li>
 {% endfor %}
-</ul>
+</ol>
 {%- endmacro %}
 
 {% block content %}
