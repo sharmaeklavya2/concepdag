@@ -190,6 +190,7 @@ def process_all(input_dir, intermediate_dir, output_dir):
     graph.transitive_closure()
     multi_node_sccs = OrderedDict()
     flat_list = []
+    data_toposorted = OrderedDict()
     for cci, vlist in enumerate(scc_list):
         if len(vlist) > 1:
             multi_node_sccs[cci] = vlist
@@ -200,6 +201,8 @@ def process_all(input_dir, intermediate_dir, output_dir):
         for uci in flat_list:
             if uci in data:
                 print(uci, file=fp)
+                data_toposorted[uci] = data[uci]
+    data = data_toposorted
 
     # Make JsonProcessor as per config and data
     config = get_config(input_dir)
