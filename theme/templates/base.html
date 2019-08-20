@@ -30,14 +30,12 @@
 {% block css %}{% for css in CSS %}
 <link rel="stylesheet" href="{{css}}" />
 {% endfor %}{% endblock css %}
-<script type="text/javascript">
-window.MathJax = {
-    tex2jax: {
-        inlineMath: [ ['$','$'], ["\\(","\\)"] ],
-        processEscapes: true
-    }
-};
-</script>
+<script type="text/x-mathjax-config">MathJax.Hub.Config({
+"TeX": {"extensions": ["AMSmath.js", "AMSsymbols.js", "noErrors.js", "noUndefined.js"]},
+"extensions": ["tex2jax.js"],
+"jax": ["input/TeX", "output/CommonHTML"],
+"tex2jax": {"inlineMath": [ ["$","$"], ["\\(","\\)"] ], "processEscapes": true},
+});</script>
 {% block async_js %}{% for script in ASYNC_JS %}
 <script type="text/javascript" async="async" src="{{script}}"></script>
 {% endfor %}{% endblock async_js %}
