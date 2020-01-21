@@ -46,6 +46,8 @@ class JsonProcessor:
             return html_path
 
     def get_deps_context(self, d):
+        if d is None:
+            return None
         d2 = []
         for i, deps in enumerate(d):
             d3 = []
@@ -149,17 +151,21 @@ def process_all(input_dir, intermediate_dir, output_dir):
         d = read_json_obj(fpath1)
         data[uci] = d
 
-    # add edges to graph and detect broken dependencies
+    # add edges to graph and detect broken and unspecified dependencies
     broken_deps = OrderedDict()
+    unspecified_deps = []
     for uci, d in data.items():
-        for deps in d['deps']:
-            for uci2, reason in deps.items():
-                graph.add_edge(uci2, uci, reason)
-                if uci2 not in data:
-                    if uci2 not in broken_deps:
-                        broken_deps[uci2] = [uci]
-                    else:
-                        broken_deps[uci2].append(uci)
+        if d['deps'] is None:
+            unspecified_deps.append(uci)
+        else:
+            for deps in d['deps']:
+                for uci2, reason in deps.items():
+                    graph.add_edge(uci2, uci, reason)
+                    if uci2 not in data:
+                        if uci2 not in broken_deps:
+                            broken_deps[uci2] = [uci]
+                        else:
+                            broken_deps[uci2].append(uci)
 
     with open(pjoin(intermediate_dir, 'graph.dot'), 'w') as fp:
         print('digraph concepdag {', file=fp)
@@ -168,7 +174,7 @@ def process_all(input_dir, intermediate_dir, output_dir):
             if label is not None:
                 print('"{}" [label="{}"]'.format(uci, label), file=fp)
         for uci, d in data.items():
-            for deps in d['deps']:
+            for deps in d['deps'] or []:
                 for uci2, reason in deps.items():
                     if reason is None:
                         print('"{}" -> "{}"'.format(uci2, uci), file=fp)
@@ -184,6 +190,9 @@ def process_all(input_dir, intermediate_dir, output_dir):
 
     with open(pjoin(intermediate_dir, 'broken_deps.json'), 'w') as fp:
         json.dump(broken_deps, fp, indent=4)
+    with open(pjoin(intermediate_dir, 'unspecified_deps.txt'), 'w') as fp:
+        for uci in unspecified_deps:
+            print(uci, file=fp)
 
     # SCCs, toposort and transitive dependencies
     scc_list = graph.scc()
