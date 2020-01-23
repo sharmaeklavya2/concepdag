@@ -22,8 +22,11 @@ def get_uci_fpath_list(nodes_dir):
 
 
 def read_json_obj(fpath):
-    with open(fpath) as fobj:
-        return json.load(fobj, object_pairs_hook=OrderedDict)
+    try:
+        with open(fpath) as fobj:
+            return json.load(fobj, object_pairs_hook=OrderedDict)
+    except json.JSONDecodeError as e:
+        raise Exception('could not read json file: ' + fpath) from e
 
 
 def write_json_obj(obj, fpath, indent=None):
