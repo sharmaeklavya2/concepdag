@@ -27,6 +27,13 @@ def jsonpath_to_string(jsonpath):
 
 global_markdown = None
 KNOWN_FORMATS = ('html', 'txt', 'raw', 'tex', 'md', 'mdonly')
+TYPE_FROM_STRING = {
+    'string': str,
+    'int': int,
+    'float': float,
+    'list': list,
+    'dict': Mapping,
+}
 
 
 def get_markdown_instance():
@@ -66,6 +73,9 @@ class InputJsonParser:
             self.url = ''
         else:
             self.url = urljoin(self.siteurl, 'nodes' + uci)
+        self.validations = config.get('METADATA_VALIDATION', OrderedDict())
+        self.required_metadata_fields = {k for (k, spec) in self.validations.items()
+            if spec.get('required')}
 
     def convert_absolute_url(self, url):
         if self.siteurl is not None:
@@ -90,6 +100,9 @@ class InputJsonParser:
             return ': '.join(parts)
 
     class ParseTypeError(ParseError):
+        pass
+
+    class MetadataValidationError(ParseError):
         pass
 
     def parse_path(self, s, jsonpath):
@@ -233,6 +246,30 @@ class InputJsonParser:
             raise self.ParseError('parse_document', 'not a list, mapping or null',
                 uci=self.uci, jsonpath=jsonpath)
 
+    def validate_metadata(self, v, spec, jsonpath):
+        if 'type' in spec:
+            actual_type = type(v)
+            expected_type = TYPE_FROM_STRING[spec['type']]
+            if not issubclass(actual_type, expected_type):
+                raise self.MetadataValidationError('invalid_type',
+                    'actual: {}, expected: {}'.format(actual_type.__name__,
+                        expected_type.__name__),
+                    uci=self.uci, jsonpath=jsonpath)
+        if 'in' in spec and v not in spec['in']:
+            raise self.MetadataValidationError('invalid_value',
+                '{} not found in {}'.format(repr(v), spec['in']),
+                uci=self.uci, jsonpath=jsonpath)
+
+    def validate_metadata_dict(self, d, jsonpath):
+        missing_fields = self.required_metadata_fields - d.keys()
+        if missing_fields:
+            raise self.MetadataValidationError('missing_fields', missing_fields,
+                uci=self.uci, jsonpath=jsonpath)
+        for k, v in d.items():
+            spec = self.validations.get(k)
+            if spec is not None:
+                self.validate_metadata(v, spec, jsonpath + (k,))
+
     def parse_input(self, d, jsonpath=()):
         if not isinstance(d, Mapping):
             raise self.ParseError('parse_input', 'not a mapping', uci=self.uci, jsonpath=jsonpath)
@@ -241,6 +278,7 @@ class InputJsonParser:
 
         d2['deps'] = self.parse_deps(d.get('deps'), jsonpath=jsonpath + ('deps',))
         d2['metadata'] = d.get('metadata', OrderedDict())
+        self.validate_metadata_dict(d2['metadata'], jsonpath=('metadata',))
         document = self.parse_document(d.get('document'), d2['metadata'],
             jsonpath=jsonpath + ('document',))
 
