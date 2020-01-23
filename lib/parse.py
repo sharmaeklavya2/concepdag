@@ -86,7 +86,7 @@ class InputJsonParser:
                 parts.append(self.uci + s)
             elif self.jsonpath:
                 parts.append(s)
-            parts.extend(self.args)
+            parts.extend([str(x) for x in self.args])
             return ': '.join(parts)
 
     class ParseTypeError(ParseError):
