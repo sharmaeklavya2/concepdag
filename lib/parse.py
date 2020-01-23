@@ -55,16 +55,17 @@ def linkify(text, url):
 
 
 class InputJsonParser:
-    def __init__(self, input_dir, intermediate_dir, uci, siteurl=None):
+    def __init__(self, input_dir, intermediate_dir, uci, config):
         # siteurl should end with a slash if it contains a subdirectory
         self.input_dir = input_dir
         self.intermediate_dir = intermediate_dir
         self.uci = uci
-        self.siteurl = siteurl
-        if siteurl is None:
+        self.config = config
+        self.siteurl = config.get('SITEURL')
+        if self.siteurl is None:
             self.url = ''
         else:
-            self.url = urljoin(siteurl, 'nodes' + uci)
+            self.url = urljoin(self.siteurl, 'nodes' + uci)
 
     def convert_absolute_url(self, url):
         if self.siteurl is not None:
@@ -251,8 +252,7 @@ def process_all(input_dir, intermediate_dir, indent=4):
     uci_input_fpath_list = get_uci_fpath_list(pjoin(input_dir, 'nodes'))
     for uci, input_fpath in uci_input_fpath_list:
         output_fpath = pjoin(intermediate_dir, 'json1', uci[1:] + '.json')
-        parser = InputJsonParser(input_dir, intermediate_dir, uci=uci,
-            siteurl=config.get('SITEURL'))
+        parser = InputJsonParser(input_dir, intermediate_dir, uci=uci, config=config)
         d = read_json_obj(input_fpath)
         d2, document = parser.parse_input(d)
         write_json_obj(d2, output_fpath, indent=indent)
