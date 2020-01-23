@@ -5,6 +5,7 @@ from collections import OrderedDict
 
 
 DEFAULT_SITE_NAME = 'ConcepDAG'
+debug = False
 
 
 def get_uci_fpath_list(nodes_dir):
@@ -53,6 +54,9 @@ def get_config(dirpath):
         config['TITLE'] = config.get('NAME')
     if config.get('NAME') is None:
         config['NAME'] = DEFAULT_SITE_NAME
+    config['DEBUG'] = debug
+    if debug:
+        config['SITEURL'] = None
     return config
 
 
