@@ -132,9 +132,7 @@ class InputJsonParser:
         return d2
 
     def parse_deps(self, d, jsonpath):
-        if d is None:
-            return None
-        elif not d:
+        if not d:
             return []
         if isinstance(d, Mapping):
             d3 = self.parse_deps_mapping(d, jsonpath=jsonpath)

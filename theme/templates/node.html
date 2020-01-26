@@ -29,9 +29,7 @@
 {% elif uci %}
 <h1>{{ uci }}</h1>
 {% endif %}
-{% if deps is none %}
-<h2 class="no-deps"> Dependencies: Unspecified </h2>
-{% elif deps %}
+{% if deps %}
 {% for deplist in deps %}
 <h2> Dependencies: </h2>
 {{ print_deplist(deplist) }}
