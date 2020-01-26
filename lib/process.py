@@ -60,6 +60,7 @@ class JsonProcessor:
                     obj2 = self.data[uci2]
                     # deps2 = obj2['deps']
                     metadata2 = obj2['metadata']
+                    status2, deps_status2 = obj2['status'], obj2['deps_status']
                     try:
                         depth2 = self.graph.get_depth(uci2)
                         topo_order2 = self.graph.get_topo_order(uci2)
@@ -70,6 +71,7 @@ class JsonProcessor:
                         n_deps, n_rdeps, n_tdeps, n_trdeps = None, None, None, None
                 except KeyError:
                     metadata2 = None
+                    status2, deps_status2 = None, None
                     depth2 = None
                     topo_order2 = None
                     n_deps, n_rdeps, n_tdeps, n_trdeps = None, None, None, None
@@ -77,6 +79,8 @@ class JsonProcessor:
                     ('uci', uci2),
                     ('exists', uci2 in self.data),
                     ('reason', reason),
+                    ('status', status2),
+                    ('deps_status', deps_status2),
                     ('depth', depth2),
                     ('topo_order', topo_order2),
                     ('n_deps', n_deps),
@@ -93,6 +97,8 @@ class JsonProcessor:
         obj = OrderedDict(d['metadata'])
         obj['uci'] = uci
         obj['url'] = self.get_url(uci)
+        if d['status'] != 'ok':
+            obj['status'] = d['status']
         if self.config.get('SEARCH_FIELDS') is None:
             obj['search'] = search_sep.join(d['metadata'].values())
         return obj
@@ -102,6 +108,7 @@ class JsonProcessor:
         d2['depth'] = self.graph.get_depth(uci)
         d2['topo_order'] = self.graph.get_topo_order(uci)
         d2['n_deps'], d2['n_rdeps'], d2['n_tdeps'], d2['n_trdeps'] = self.graph.get_degrees(uci)
+        d2['deps_status'], d2['status'] = d['deps_status'], d['status']
         d2['metadata'] = d['metadata']
         d2['deps'] = self.get_deps_context(d['deps'])
         d2['rdeps'] = self.get_deps_context([self.graph.get_adj(uci)])[0]
@@ -113,7 +120,7 @@ def section_id_to_name(s):
     return s.replace('-', ' ').replace('_', ' ').title()
 
 
-def add_to_index_tree(tree, uci, url, metadata, graph):
+def add_to_index_tree(tree, uci, url, metadata, graph, status, deps_status):
     uci_parts = uci[1:].split('/')
     for i, part in enumerate(uci_parts):
         if i < len(uci_parts) - 1:
@@ -129,6 +136,8 @@ def add_to_index_tree(tree, uci, url, metadata, graph):
             tree[part] = {
                 'uci': uci,
                 'url': url,
+                'status': status,
+                'deps_status': deps_status,
                 'depth': graph.get_depth(uci),
                 'topo_order': graph.get_topo_order(uci),
                 'n_deps': n_deps,
@@ -213,7 +222,8 @@ def process_all(input_dir, intermediate_dir, output_dir):
     index_tree = OrderedDict()
     for uci, d in data.items():
         search_objs.append(processor.get_search_obj(d, uci))
-        add_to_index_tree(index_tree, uci, processor.get_url(uci), d['metadata'], graph)
+        add_to_index_tree(index_tree, uci, processor.get_url(uci), d['metadata'], graph,
+            d['status'], d['deps_status'])
         # Write render-context
         fpath2 = pjoin(intermediate_dir, 'json2', uci[1:] + '.json')
         context = processor.get_context(d, uci, config.get("FIND_TDEPS", True))

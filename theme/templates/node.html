@@ -6,11 +6,9 @@
     <li>
     {% if dep.exists %}
     <a href="{{ SITEURL }}/nodes{{ dep.uci }}.html">
-        {% if dep.metadata.title %}
-        <span class="deptitle">{{ dep.metadata.title }}</span>
-        {% else %}
-        <span class="deptitleuci">{{ dep.metadata.title }}</span>
-        {% endif %}
+        <span class="{% if dep.metadata.title %}deptitle{% else %}deptitleuci{% endif %}">
+        {{ dep.metadata.title|default(dep.uci) }}</span>
+        {% if dep.status != "ok" %}<span class="doc-status">({{dep.status}})</span>{% endif %}
     </a>
     {% else %}
     <span class="deptitleuci missing">{{ dep.uci }}</span>
@@ -24,18 +22,17 @@
 {%- endmacro %}
 
 {% block content %}
-{% if metadata and metadata.title %}
-<h1>{{ metadata.title }}</h1>
-{% elif uci %}
-<h1>{{ uci }}</h1>
-{% endif %}
+<h1> {% if metadata and metadata.title %}{{ metadata.title }}{% else %}{{ uci }}{% endif %}
+{% if status != "ok" %} <span class="doc-status">({{status}})</span>{% endif %} </h1>
 {% if deps %}
 {% for deplist in deps %}
-<h2> Dependencies: </h2>
+<h2> Dependencies:
+{% if deps_status != "ok" %}<span class="deps-status">({{deps_status}})</span>{% endif %} </h2>
 {{ print_deplist(deplist) }}
 {% endfor %}
 {% else %}
-<h2 class="no-deps"> Dependencies: None </h2>
+<h2 class="no-deps"> Dependencies:
+{% if deps_status == "incomplete" %}Unspecified{% else %}None{% endif %} </h2>
 {% endif %}
 
 {% if document %}

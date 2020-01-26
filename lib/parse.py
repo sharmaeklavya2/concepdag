@@ -268,6 +268,17 @@ class InputJsonParser:
             if spec is not None:
                 self.validate_metadata(v, spec, jsonpath + (k,))
 
+    STATUSES = ['ok', 'incomplete']
+
+    def parse_status(self, x, jsonpath):
+        if x is None:
+            return 'ok'
+        elif not isinstance(x, str):
+            raise self.ParseTypeError('invalid_type', 'expected string')
+        elif x not in InputJsonParser.STATUSES:
+            raise self.ParseError('invalid_value', 'not in {}'.format(InputJsonParser.STATUSES))
+        return x
+
     def parse_input(self, d, jsonpath=()):
         if not isinstance(d, Mapping):
             raise self.ParseError('parse_input', 'not a mapping', uci=self.uci, jsonpath=jsonpath)
@@ -275,6 +286,9 @@ class InputJsonParser:
         d2 = OrderedDict()
 
         d2['deps'] = self.parse_deps(d.get('deps'), jsonpath=jsonpath + ('deps',))
+        d2['deps_status'] = self.parse_status(d.get('deps_status'),
+            jsonpath=jsonpath + ('deps_status',))
+        d2['status'] = self.parse_status(d.get('status'), jsonpath=jsonpath + ('status',))
         d2['metadata'] = d.get('metadata', OrderedDict())
         self.validate_metadata_dict(d2['metadata'], jsonpath=('metadata',))
         document = self.parse_document(d.get('document'), d2['metadata'],

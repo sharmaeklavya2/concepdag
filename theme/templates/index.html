@@ -34,8 +34,10 @@ h1, .description {text-align: center;}
         <a href="{{ v.url }}" {% if v.metadata.title %}class="index-title"{% else %}class="index-titleuci"{% endif %}>
         {% if v.metadata.title %}
             {{ v.metadata.title }}
+{% if v.status != "ok" %} <span class="doc-status">({{v.status}})</span>{% endif %}
         {% else %}
             {{ v.uci }}
+{% if v.status != "ok" %} <span class="doc-status">({{v.status}})</span>{% endif %}
         {% endif %}
         </a>
         {% else %}
