@@ -97,7 +97,7 @@ pre > code, code {
 }
 .horizontal-rule {
     margin: 1em 0;
-    border: 1px solid rgba(0, 0, 0, 0.1);;
+    border: 1px solid rgba(0, 0, 0, 0.1);
 }
 
 .deplist .missing {
