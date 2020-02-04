@@ -61,32 +61,15 @@ class JsonProcessor:
                     # deps2 = obj2['deps']
                     metadata2 = obj2['metadata']
                     status2, deps_status2 = obj2['status'], obj2['deps_status']
-                    try:
-                        depth2 = self.graph.get_depth(uci2)
-                        topo_order2 = self.graph.get_topo_order(uci2)
-                        n_deps, n_rdeps, n_tdeps, n_trdeps = self.graph.get_degrees(uci2)
-                    except self.graph.VertexNotFound:
-                        depth2 = None
-                        topo_order2 = None
-                        n_deps, n_rdeps, n_tdeps, n_trdeps = None, None, None, None
                 except KeyError:
                     metadata2 = None
                     status2, deps_status2 = None, None
-                    depth2 = None
-                    topo_order2 = None
-                    n_deps, n_rdeps, n_tdeps, n_trdeps = None, None, None, None
                 d4 = OrderedDict([
                     ('uci', uci2),
                     ('exists', uci2 in self.data),
                     ('reason', reason),
                     ('status', status2),
                     ('deps_status', deps_status2),
-                    ('depth', depth2),
-                    ('topo_order', topo_order2),
-                    ('n_deps', n_deps),
-                    ('n_rdeps', n_rdeps),
-                    ('n_tdeps', n_tdeps),
-                    ('n_trdeps', n_trdeps),
                     ('metadata', metadata2),
                 ])
                 d3.append(d4)
@@ -141,9 +124,6 @@ def add_to_index_tree(tree, uci, url, metadata, graph, status, deps_status):
                 'depth': graph.get_depth(uci),
                 'topo_order': graph.get_topo_order(uci),
                 'n_deps': n_deps,
-                'n_rdeps': n_rdeps,
-                'n_tdeps': n_tdeps,
-                'n_trdeps': n_trdeps,
                 'metadata': metadata,
             }
 
