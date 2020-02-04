@@ -95,7 +95,9 @@ class JsonProcessor:
         d2['metadata'] = d['metadata']
         d2['deps'] = self.get_deps_context(d['deps'])
         d2['rdeps'] = self.get_deps_context([self.graph.get_adj(uci)])[0]
-        d2['tdeps'] = self.get_deps_context([self.graph.get_tradj(uci)])[0]
+        tradj = self.graph.get_tradj(uci)
+        tradj.remove(uci)
+        d2['tdeps'] = self.get_deps_context([tradj])[0]
         return d2
 
 
