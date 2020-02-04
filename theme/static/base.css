@@ -99,6 +99,9 @@ pre > code, code {
     margin: 1em 0;
     border: 1px solid rgba(0, 0, 0, 0.1);
 }
+.text-danger { color: #dc3545; }
+.text-warning { color: #ffc107; }
+.text-success { color: #28a745; }
 
 .deplist .missing {
     font-family: monospace;
