@@ -128,3 +128,17 @@ pre > code, code {
     font-size: 80%;
     color: rgba(0, 0, 0, 0.5);
 }
+.citation {
+    margin: 0.5em 0 0.5em 0;
+}
+.citation:target {
+    background-color: rgba(0, 0, 0, 0.1);
+}
+.citation .cite-name {
+    color: darkgreen;
+    font-family: monospace;
+    font-size: 0.8em;
+}
+.cite-ref{
+    font-family: monospace;
+}
