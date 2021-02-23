@@ -80,3 +80,10 @@ def get_config(input_dir, intermediate_dir):
 
 def get_relative_site_url_from_uci(uci):
     return ('../' * uci.count('/'))[:-1]
+
+
+def is_modified(fpath, last_run_time):
+    if last_run_time is None:
+        return True
+    else:
+        return os.path.getmtime(fpath) >= (last_run_time / 10**9)

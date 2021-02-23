@@ -16,7 +16,7 @@ from urllib.parse import urljoin
 from markdown import Markdown
 from .common import (
     read_json_obj, write_json_obj, write_string_to_file, get_uci_fpath_list,
-    get_relative_site_url_from_uci
+    get_relative_site_url_from_uci, is_modified
     )
 from .tex_md_escape import tex_md_escape
 
@@ -309,19 +309,26 @@ class InputJsonParser:
 
 def process_all(input_dir, intermediate_dir, config, indent=4):
     uci_input_fpath_list = get_uci_fpath_list(pjoin(input_dir, 'nodes'))
+    some_json_changed = False
     for uci, input_fpath in uci_input_fpath_list:
         output_fpath = pjoin(intermediate_dir, 'json1', uci[1:] + '.json')
         parser = InputJsonParser(input_dir, intermediate_dir, uci=uci, config=config)
         d = read_json_obj(input_fpath)
         d2, doc_lines, doc_paths = parser.parse_input(d)
-        write_json_obj(d2, output_fpath, indent=indent)
+        json_changed = is_modified(input_fpath, config['LAST_RUN_TIME'])
+        if json_changed:
+            some_json_changed = True
+            write_json_obj(d2, output_fpath, indent=indent)
         output_fpath2 = pjoin(intermediate_dir, 'pages', uci[1:] + '.html')
-        if doc_lines:
+        doc_modified = any([is_modified(doc_path, config['LAST_RUN_TIME'])
+            for doc_path in doc_paths])
+        if doc_lines and (json_changed or doc_modified):
             for i, line in enumerate(doc_lines):
                 if not isinstance(line, str):
                     doc_lines[i] = line()
             document = '\n'.join(doc_lines)
             write_string_to_file(document, output_fpath2)
+    return some_json_changed
 
 
 def main():
