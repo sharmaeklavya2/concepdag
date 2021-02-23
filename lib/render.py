@@ -41,7 +41,8 @@ def get_context(config, pages_dir=None, d=None, uci=None):
     return context
 
 
-def render_all(theme_dir, input_dir, intermediate_dir, output_dir, config):
+def render_all(theme_dir, input_dir, intermediate_dir, output_dir, config,
+        some_json_changed, modified_ucis):
     jinja_env = get_jinja_env(pjoin(theme_dir, 'templates'))
 
     # render nodes
@@ -49,11 +50,12 @@ def render_all(theme_dir, input_dir, intermediate_dir, output_dir, config):
     pages_dir = pjoin(intermediate_dir, 'pages')
     template = jinja_env.get_template('node.html')
     for uci, fpath in uci_fpath_list:
-        d = read_json_obj(fpath)
-        context = get_context(config, pages_dir, d, uci)
-        rendered = template.render(**context)
-        output_fpath = pjoin(output_dir, 'nodes', uci[1:] + '.html')
-        write_string_to_file(rendered, output_fpath)
+        if some_json_changed or uci in modified_ucis:
+            d = read_json_obj(fpath)
+            context = get_context(config, pages_dir, d, uci)
+            rendered = template.render(**context)
+            output_fpath = pjoin(output_dir, 'nodes', uci[1:] + '.html')
+            write_string_to_file(rendered, output_fpath)
 
     # render index and search
     context = get_context(config)

@@ -28,7 +28,8 @@ def main():
         return '[{:.4f}]'.format(time.time() - start_time)
 
     print(elapsed_time_str(), 'parsing')
-    some_json_changed = parse.process_all(args.input_dir, args.intermediate_dir, config)
+    some_json_changed, modified_ucis = parse.process_all(args.input_dir,
+        args.intermediate_dir, config)
 
     if some_json_changed:
         print(elapsed_time_str(), 'processing')
@@ -36,7 +37,7 @@ def main():
 
     print(elapsed_time_str(), 'rendering')
     render.render_all(args.theme, args.input_dir, args.intermediate_dir,
-        args.output_dir, config)
+        args.output_dir, config, some_json_changed, modified_ucis)
 
     common.write_timestamp(args.intermediate_dir, config['THIS_RUN_TIME'])
     print(elapsed_time_str(), 'done')

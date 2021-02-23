@@ -310,6 +310,7 @@ class InputJsonParser:
 def process_all(input_dir, intermediate_dir, config, indent=4):
     uci_input_fpath_list = get_uci_fpath_list(pjoin(input_dir, 'nodes'))
     some_json_changed = False
+    modified_ucis = set()
     for uci, input_fpath in uci_input_fpath_list:
         output_fpath = pjoin(intermediate_dir, 'json1', uci[1:] + '.json')
         parser = InputJsonParser(input_dir, intermediate_dir, uci=uci, config=config)
@@ -322,13 +323,15 @@ def process_all(input_dir, intermediate_dir, config, indent=4):
         output_fpath2 = pjoin(intermediate_dir, 'pages', uci[1:] + '.html')
         doc_modified = any([is_modified(doc_path, config['LAST_RUN_TIME'])
             for doc_path in doc_paths])
-        if doc_lines and (json_changed or doc_modified):
-            for i, line in enumerate(doc_lines):
-                if not isinstance(line, str):
-                    doc_lines[i] = line()
-            document = '\n'.join(doc_lines)
-            write_string_to_file(document, output_fpath2)
-    return some_json_changed
+        if json_changed or doc_modified:
+            modified_ucis.add(uci)
+            if doc_lines:
+                for i, line in enumerate(doc_lines):
+                    if not isinstance(line, str):
+                        doc_lines[i] = line()
+                document = '\n'.join(doc_lines)
+                write_string_to_file(document, output_fpath2)
+    return (some_json_changed, modified_ucis)
 
 
 def main():
