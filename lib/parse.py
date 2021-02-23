@@ -167,6 +167,7 @@ class InputJsonParser:
         format = d.get('format')
         title = d.get('title')
         lines = []
+        file_paths = []
         if title:
             lines.append(headingify(title, 2))
         if 'type' not in d:
@@ -197,9 +198,14 @@ class InputJsonParser:
                 else:
                     format = ext[1:]
             abspath = pjoin(self.input_dir, 'includes', relpath[1:])
-            with open(abspath) as fobj:
-                text = fobj.read()
-            lines.append(convert_to_html(text, format))
+
+            def lazy_reader():
+                with open(abspath) as fobj:
+                    text = fobj.read()
+                return convert_to_html(text, format)
+
+            lines.append(lazy_reader)
+            file_paths.append(abspath)
 
         elif d['type'] == 'meta':
             try:
@@ -228,18 +234,22 @@ class InputJsonParser:
             path2 = self.convert_absolute_url(path)
             lines.append(linkify(text=path, url=path2))
 
-        return '\n'.join(lines)
+        return (lines, file_paths)
 
     def parse_document(self, d, metadata, jsonpath):
         if d is None:
-            return None
+            return ([], [])
         elif isinstance(d, Mapping):
             return self.parse_document_section(d, metadata, jsonpath=jsonpath)
         elif isinstance(d, Sequence):
-            d2 = []
+            lines = []
+            file_paths = []
             for i, x in enumerate(d):
-                d2.append(self.parse_document_section(x, metadata, jsonpath=jsonpath + (i,)))
-            return '\n'.join(d2) if d2 else None
+                lines2, file_paths2 = self.parse_document_section(
+                    x, metadata, jsonpath=jsonpath + (i,))
+                lines += lines2
+                file_paths += file_paths2
+            return (lines, file_paths)
         else:
             raise self.ParseError('parse_document', 'not a list, mapping or null',
                 uci=self.uci, jsonpath=jsonpath)
@@ -291,10 +301,10 @@ class InputJsonParser:
         d2['status'] = self.parse_status(d.get('status'), jsonpath=jsonpath + ('status',))
         d2['metadata'] = d.get('metadata', OrderedDict())
         self.validate_metadata_dict(d2['metadata'], jsonpath=('metadata',))
-        document = self.parse_document(d.get('document'), d2['metadata'],
+        doc_lines, doc_paths = self.parse_document(d.get('document'), d2['metadata'],
             jsonpath=jsonpath + ('document',))
 
-        return (d2, document)
+        return (d2, doc_lines, doc_paths)
 
 
 def process_all(input_dir, intermediate_dir, indent=4):
@@ -304,10 +314,14 @@ def process_all(input_dir, intermediate_dir, indent=4):
         output_fpath = pjoin(intermediate_dir, 'json1', uci[1:] + '.json')
         parser = InputJsonParser(input_dir, intermediate_dir, uci=uci, config=config)
         d = read_json_obj(input_fpath)
-        d2, document = parser.parse_input(d)
+        d2, doc_lines, doc_paths = parser.parse_input(d)
         write_json_obj(d2, output_fpath, indent=indent)
         output_fpath2 = pjoin(intermediate_dir, 'pages', uci[1:] + '.html')
-        if document is not None:
+        if doc_lines:
+            for i, line in enumerate(doc_lines):
+                if not isinstance(line, str):
+                    doc_lines[i] = line()
+            document = '\n'.join(doc_lines)
             write_string_to_file(document, output_fpath2)
 
 
