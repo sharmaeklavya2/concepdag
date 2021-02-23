@@ -68,6 +68,8 @@ def get_config(input_dir, intermediate_dir):
         config['TITLE'] = config.get('NAME')
     if config.get('NAME') is None:
         config['NAME'] = DEFAULT_SITE_NAME
+    if config.get('DISABLE') is None:
+        config['DISABLE'] = []
     config['DEBUG'] = debug
     if debug:
         config['SITEURL'] = None

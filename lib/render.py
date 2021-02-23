@@ -66,7 +66,8 @@ def render_all(theme_dir, input_dir, intermediate_dir, output_dir, config):
         write_string_to_file(s, output_fpath)
 
     # copy static assets
-    shutil.copyfile(pjoin(intermediate_dir, 'graph.svg'), pjoin(output_dir, 'graph.svg'))
+    if 'dot' not in config['DISABLE']:
+        shutil.copyfile(pjoin(intermediate_dir, 'graph.svg'), pjoin(output_dir, 'graph.svg'))
 
     # copy theme
     input_dirpath = pjoin(theme_dir, 'static')

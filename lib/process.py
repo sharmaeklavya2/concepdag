@@ -151,30 +151,30 @@ def process_all(input_dir, intermediate_dir, output_dir, config):
                         broken_deps[uci2] = [uci]
                     else:
                         broken_deps[uci2].append(uci)
-
-    with open(pjoin(intermediate_dir, 'graph.dot'), 'w') as fp:
-        print('digraph concepdag {', file=fp)
-        for uci, d in data.items():
-            label = d['metadata'].get('title')
-            if label is not None:
-                print('"{}" [label="{}"]'.format(uci, label), file=fp)
-        for uci, d in data.items():
-            for deps in d['deps']:
-                for uci2, reason in deps.items():
-                    if reason is None:
-                        print('"{}" -> "{}"'.format(uci2, uci), file=fp)
-                    else:
-                        print('"{}" -> "{}" [label="{}"]'.format(uci2, uci, reason), file=fp)
-        print('}', file=fp)
-
-    try:
-        subprocess.check_call(['dot', '-Tsvg', pjoin(intermediate_dir, 'graph.dot'), '-o',
-            pjoin(intermediate_dir, 'graph.svg')])
-    except FileNotFoundError:
-        print('dot is not installed, not generating graph', file=sys.stderr)
-
     with open(pjoin(intermediate_dir, 'broken_deps.json'), 'w') as fp:
         json.dump(broken_deps, fp, indent=4)
+
+    if 'dot' not in config['DISABLE']:
+        with open(pjoin(intermediate_dir, 'graph.dot'), 'w') as fp:
+            print('digraph concepdag {', file=fp)
+            for uci, d in data.items():
+                label = d['metadata'].get('title')
+                if label is not None:
+                    print('"{}" [label="{}"]'.format(uci, label), file=fp)
+            for uci, d in data.items():
+                for deps in d['deps']:
+                    for uci2, reason in deps.items():
+                        if reason is None:
+                            print('"{}" -> "{}"'.format(uci2, uci), file=fp)
+                        else:
+                            print('"{}" -> "{}" [label="{}"]'.format(uci2, uci, reason), file=fp)
+            print('}', file=fp)
+
+        try:
+            subprocess.check_call(['dot', '-Tsvg', pjoin(intermediate_dir, 'graph.dot'), '-o',
+                pjoin(intermediate_dir, 'graph.svg')])
+        except FileNotFoundError:
+            print('dot is not installed, not generating graph', file=sys.stderr)
 
     # SCCs, toposort and transitive dependencies
     scc_list = graph.scc()
