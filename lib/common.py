@@ -1,5 +1,6 @@
 import os
 from os.path import join as pjoin
+import time
 import json
 from collections import OrderedDict
 
@@ -44,7 +45,20 @@ def write_string_to_file(s, fpath):
         fp.write(s)
 
 
-def get_config(input_dir):
+def read_timestamp(intermediate_dir):
+    try:
+        with open(pjoin(intermediate_dir, 'last_run_ns.txt')) as fp:
+            return int(fp.read())
+    except FileNotFoundError:
+        return None
+
+
+def write_timestamp(intermediate_dir, timestamp):
+    with open(pjoin(intermediate_dir, 'last_run_ns.txt'), 'w') as fp:
+        fp.write(str(timestamp))
+
+
+def get_config(input_dir, intermediate_dir):
     config_json = pjoin(input_dir, 'config.json')
     try:
         config = read_json_obj(config_json)
@@ -57,6 +71,8 @@ def get_config(input_dir):
     config['DEBUG'] = debug
     if debug:
         config['SITEURL'] = None
+    config['LAST_RUN_TIME'] = read_timestamp(intermediate_dir)
+    config['THIS_RUN_TIME'] = time.time_ns()
     return config
 
 

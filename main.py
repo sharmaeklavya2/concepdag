@@ -21,7 +21,7 @@ def main():
 
     common.debug = args.debug
 
-    config = common.get_config(args.input_dir)
+    config = common.get_config(args.input_dir, args.intermediate_dir)
     print('Action: parse')
     parse.process_all(args.input_dir, args.intermediate_dir, config)
     print('Action: process')
@@ -29,6 +29,7 @@ def main():
     print('Action: render')
     render.render_all(args.theme, args.input_dir, args.intermediate_dir,
         args.output_dir, config)
+    common.write_timestamp(args.intermediate_dir, config['THIS_RUN_TIME'])
 
 
 if __name__ == '__main__':
