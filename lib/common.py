@@ -44,8 +44,8 @@ def write_string_to_file(s, fpath):
         fp.write(s)
 
 
-def get_config(dirpath):
-    config_json = pjoin(dirpath, 'config.json')
+def get_config(input_dir):
+    config_json = pjoin(input_dir, 'config.json')
     try:
         config = read_json_obj(config_json)
     except FileNotFoundError:

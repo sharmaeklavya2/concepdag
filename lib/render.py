@@ -5,7 +5,7 @@ import shutil
 
 from jinja2 import Environment, FileSystemLoader, select_autoescape
 from .common import (
-    read_json_obj, write_string_to_file, get_config, get_uci_fpath_list,
+    read_json_obj, write_string_to_file, get_uci_fpath_list,
     get_relative_site_url_from_uci,
     )
 
@@ -41,9 +41,8 @@ def get_context(config, pages_dir=None, d=None, uci=None):
     return context
 
 
-def render_all(theme_dir, input_dir, intermediate_dir, output_dir):
+def render_all(theme_dir, input_dir, intermediate_dir, output_dir, config):
     jinja_env = get_jinja_env(pjoin(theme_dir, 'templates'))
-    config = get_config(input_dir)
 
     # render nodes
     uci_fpath_list = get_uci_fpath_list(pjoin(intermediate_dir, 'json2'))

@@ -15,7 +15,7 @@ from collections import abc
 from urllib.parse import urljoin
 import subprocess
 
-from .common import get_uci_fpath_list, read_json_obj, write_json_obj, get_config
+from .common import get_uci_fpath_list, read_json_obj, write_json_obj
 from .graph import Graph
 
 
@@ -130,7 +130,7 @@ def add_to_index_tree(tree, uci, url, metadata, graph, status, deps_status):
             }
 
 
-def process_all(input_dir, intermediate_dir, output_dir):
+def process_all(input_dir, intermediate_dir, output_dir, config):
     # read data from file
     uci_fpath_list_1 = get_uci_fpath_list(pjoin(intermediate_dir, 'json1'))
     data = OrderedDict()
@@ -196,7 +196,6 @@ def process_all(input_dir, intermediate_dir, output_dir):
     data = data_toposorted
 
     # Make JsonProcessor as per config and data
-    config = get_config(input_dir)
     processor = JsonProcessor(intermediate_dir, config, data, graph)
 
     # create search index, hierarchical index and render context

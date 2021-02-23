@@ -20,12 +20,15 @@ def main():
     args = parser.parse_args()
 
     common.debug = args.debug
+
+    config = common.get_config(args.input_dir)
     print('Action: parse')
-    parse.process_all(args.input_dir, args.intermediate_dir)
+    parse.process_all(args.input_dir, args.intermediate_dir, config)
     print('Action: process')
-    process.process_all(args.input_dir, args.intermediate_dir, args.output_dir)
+    process.process_all(args.input_dir, args.intermediate_dir, args.output_dir, config)
     print('Action: render')
-    render.render_all(args.theme, args.input_dir, args.intermediate_dir, args.output_dir)
+    render.render_all(args.theme, args.input_dir, args.intermediate_dir,
+        args.output_dir, config)
 
 
 if __name__ == '__main__':

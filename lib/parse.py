@@ -16,7 +16,7 @@ from urllib.parse import urljoin
 from markdown import Markdown
 from .common import (
     read_json_obj, write_json_obj, write_string_to_file, get_uci_fpath_list,
-    get_relative_site_url_from_uci, get_config
+    get_relative_site_url_from_uci
     )
 from .tex_md_escape import tex_md_escape
 
@@ -307,8 +307,7 @@ class InputJsonParser:
         return (d2, doc_lines, doc_paths)
 
 
-def process_all(input_dir, intermediate_dir, indent=4):
-    config = get_config(input_dir)
+def process_all(input_dir, intermediate_dir, config, indent=4):
     uci_input_fpath_list = get_uci_fpath_list(pjoin(input_dir, 'nodes'))
     for uci, input_fpath in uci_input_fpath_list:
         output_fpath = pjoin(intermediate_dir, 'json1', uci[1:] + '.json')
