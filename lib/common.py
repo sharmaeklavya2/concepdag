@@ -47,8 +47,11 @@ def write_string_to_file(s, fpath):
 
 def read_timestamp(intermediate_dir):
     try:
-        with open(pjoin(intermediate_dir, 'last_run_ns.txt')) as fp:
-            return int(fp.read())
+        fpath = pjoin(intermediate_dir, 'last_run_ns.txt')
+        with open(fpath) as fp:
+            result = int(fp.read())
+        os.remove(fpath)
+        return result
     except FileNotFoundError:
         return None
 
