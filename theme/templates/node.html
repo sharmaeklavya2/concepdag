@@ -32,7 +32,7 @@
 {% endfor %}
 {% else %}
 <h2 class="no-deps"> Dependencies:
-{% if deps_status == "incomplete" %}Unspecified{% else %}None{% endif %} </h2>
+{% if deps_status != "ok" %}Unspecified{% else %}None{% endif %} </h2>
 {% endif %}
 
 {% if document %}

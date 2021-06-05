@@ -278,7 +278,7 @@ class InputJsonParser:
             if spec is not None:
                 self.validate_metadata(v, spec, jsonpath + (k,))
 
-    STATUSES = ['ok', 'incomplete']
+    STATUSES = ['ok', 'incomplete', 'broken']
 
     def parse_status(self, x, jsonpath):
         if x is None:
