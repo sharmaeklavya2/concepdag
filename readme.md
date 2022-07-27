@@ -60,3 +60,10 @@ whereas Metacademy is a dynamic web application.
   A static website can be faster.
 * Deploying an instance of a dynamic website is either difficult or costly.
 * Metacademy allows easy content updation. ConcepDAG can't do that (yet).
+
+## Freedom to use
+
+&copy; 2021 Eklavya Sharma
+
+All code is licensed under the [MIT license](https://choosealicense.com/licenses/mit/).
+This roughly means that you are free to use, modify and distribute this code.
